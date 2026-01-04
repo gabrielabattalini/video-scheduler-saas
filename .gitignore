@@ -1,0 +1,36 @@
+# ENV
+.env
+.env.*
+backend/.env
+frontend/.env
+
+!.env.example
+
+# Node
+node_modules/
+**/node_modules/
+
+# Builds
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Logs
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Prisma / DB
+*.db
+*.sqlite
+prisma/dev.db
+
+# Docker volumes (se existirem)
+data/
+volumes/
