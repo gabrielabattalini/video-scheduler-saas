@@ -1,9 +1,7 @@
 # ENV
 .env
 .env.*
-backend/.env
-frontend/.env
-
+**/.env
 !.env.example
 
 # Node
@@ -14,6 +12,7 @@ node_modules/
 dist/
 build/
 .next/
+**/.next/
 out/
 coverage/
 
@@ -34,10 +33,3 @@ prisma/dev.db
 # Docker volumes (se existirem)
 data/
 volumes/
-
-node_modules/
-**/node_modules/
-.next/
-**/.next/
-.env
-**/.env
