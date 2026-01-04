@@ -34,3 +34,10 @@ prisma/dev.db
 # Docker volumes (se existirem)
 data/
 volumes/
+
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+.env
+**/.env
