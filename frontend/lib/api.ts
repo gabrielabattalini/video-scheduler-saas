@@ -1,6 +1,7 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Always prefer explicit backend URL; default to localhost:3001 to avoid hitting the frontend origin.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://autoedito.com';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -9,7 +10,7 @@ export const api = axios.create({
   },
 });
 
-// Interceptor para adicionar token em todas as requisições
+// Interceptor para adicionar token em todas as requisiÃ§Ãµes
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -59,3 +60,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

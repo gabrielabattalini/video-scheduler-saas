@@ -1,10 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { jwtConfig } from '../config/jwt.config';
 import type { RegisterInput, LoginInput } from '../schemas/auth.schema';
-
-const prisma = new PrismaClient();
 
 export class AuthService {
   static async hashPassword(password: string): Promise<string> {
@@ -66,11 +64,13 @@ export class AuthService {
         email: data.email,
         password: hashedPassword,
         name: data.name,
+        provider: 'email',
       },
       select: {
         id: true,
         email: true,
         name: true,
+        avatarUrl: true,
         createdAt: true,
       },
     });
@@ -94,6 +94,11 @@ export class AuthService {
       throw new Error('Credenciais inválidas');
     }
 
+    // Se usuário não tem senha (OAuth), não pode fazer login com email/senha
+    if (!user.password) {
+      throw new Error('Esta conta usa login social. Use Google para fazer login.');
+    }
+
     const isPasswordValid = await this.comparePassword(data.password, user.password);
 
     if (!isPasswordValid) {
@@ -108,6 +113,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
       },
       accessToken,

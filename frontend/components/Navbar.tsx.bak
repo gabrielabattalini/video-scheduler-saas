@@ -1,0 +1,710 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { authService } from '@/lib/auth';
+import { connectionsApi } from '@/lib/connections-api';
+import { workspacesApi, type Workspace } from '@/lib/workspaces-api';
+import { Logo } from './Logo';
+import { LanguageSelector } from './LanguageSelector';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { ConfirmDialog } from './ConfirmDialog';
+
+export function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { t } = useLanguage();
+  const [user, setUser] = useState<any>(null);
+  const [hasConnections, setHasConnections] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [activeWorkspace, setActiveWorkspace] = useState<{ id: string; name: string; color?: string } | null>(null);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
+  const [workspaceModalSelection, setWorkspaceModalSelection] = useState<string | null>(null);
+  const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [confirmData, setConfirmData] = useState<{ message: string; targetId: string | null } | null>(null);
+
+  useEffect(() => {
+    // Carregar usuário apenas no cliente
+    setUser(authService.getUser());
+  }, []);
+
+  const persistWorkspaceSelection = (workspace: Workspace | null) => {
+    if (workspace) {
+      localStorage.setItem('activeWorkspaceId', workspace.id);
+      localStorage.setItem('activeWorkspaceName', workspace.name);
+      if (workspace.color) {
+        localStorage.setItem('activeWorkspaceColor', workspace.color);
+      } else {
+        localStorage.removeItem('activeWorkspaceColor');
+      }
+      setActiveWorkspace({ id: workspace.id, name: workspace.name, color: workspace.color });
+      window.dispatchEvent(new Event('workspace-changed'));
+    } else {
+      localStorage.removeItem('activeWorkspaceId');
+      localStorage.removeItem('activeWorkspaceName');
+      localStorage.removeItem('activeWorkspaceColor');
+      setActiveWorkspace(null);
+      window.dispatchEvent(new Event('workspace-changed'));
+    }
+  };
+
+  useEffect(() => {
+    const checkConnections = async () => {
+      try {
+        if (!authService.isAuthenticated()) {
+          setIsLoading(false);
+          return;
+        }
+        
+        const connections = await connectionsApi.list();
+        setHasConnections(connections.length > 0);
+      } catch (error) {
+        console.error('Erro ao verificar conexões:', error);
+        setHasConnections(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkConnections();
+  }, [pathname]);
+
+  useEffect(() => {
+    const fetchWorkspaces = async () => {
+      if (!authService.isAuthenticated()) return;
+      setIsLoadingWorkspaces(true);
+      try {
+        const list = await workspacesApi.list();
+        setWorkspaces(list);
+        const storedId = localStorage.getItem('activeWorkspaceId');
+        const storedWorkspace = storedId ? list.find((w) => w.id === storedId) : null;
+        const promptSeen = localStorage.getItem('workspacePromptSeen') === 'true';
+
+        if (storedWorkspace) {
+          persistWorkspaceSelection(storedWorkspace);
+          setWorkspaceModalSelection(storedWorkspace.id);
+          localStorage.setItem('workspacePromptSeen', 'true');
+        } else if (list.length > 0) {
+          setWorkspaceModalSelection(list[0].id);
+          if (!promptSeen) {
+            localStorage.setItem('workspacePromptSeen', 'true');
+            setWorkspaceModalOpen(true);
+          } else {
+            persistWorkspaceSelection(list[0]);
+          }
+        } else {
+          setWorkspaceModalSelection(null);
+          if (!promptSeen) {
+            localStorage.setItem('workspacePromptSeen', 'true');
+            setWorkspaceModalOpen(true);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar workspaces:', err);
+      } finally {
+        setIsLoadingWorkspaces(false);
+      }
+    };
+
+    fetchWorkspaces();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+
+  useEffect(() => {
+    const syncWorkspace = () => {
+      const id = localStorage.getItem('activeWorkspaceId');
+      const name = localStorage.getItem('activeWorkspaceName');
+      const color = localStorage.getItem('activeWorkspaceColor') || undefined;
+      setActiveWorkspace(id && name ? { id, name, color } : null);
+    };
+    syncWorkspace();
+    window.addEventListener('storage', syncWorkspace);
+    window.addEventListener('workspace-changed', syncWorkspace);
+    return () => {
+      window.removeEventListener('storage', syncWorkspace);
+      window.removeEventListener('workspace-changed', syncWorkspace);
+    };
+  }, []);
+  useEffect(() => {
+    // carregar preferências do cliente após mount
+    if (typeof window === 'undefined') return;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      setTheme(savedTheme);
+      document.documentElement.dataset.theme = savedTheme;
+    }
+    const id = localStorage.getItem('activeWorkspaceId');
+    const name = localStorage.getItem('activeWorkspaceName');
+    const color = localStorage.getItem('activeWorkspaceColor') || undefined;
+    if (id && name) {
+      setActiveWorkspace({ id, name, color });
+    }
+  }, []);
+
+  const confirmAndSetWorkspace = (workspaceId: string | null, askConfirm = true) => {
+    if (!workspaceId) return;
+    const target = workspaces.find((w) => w.id === workspaceId);
+    if (!target) return;
+    if (activeWorkspace?.id === target.id) {
+      setWorkspaceModalOpen(false);
+      return;
+    }
+    const message = t.workspaces.confirmSwitchMessage.replace('{workspace}', target.name);
+    if (!askConfirm) {
+      persistWorkspaceSelection(target);
+      setWorkspaceModalOpen(false);
+      localStorage.setItem('workspacePromptSeen', 'true');
+      return;
+    }
+    setConfirmData({ message, targetId: target.id });
+  };
+
+  return (
+    <>
+    <nav
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        background: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'white',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        borderBottom: isScrolled 
+          ? '1px solid rgba(0, 0, 0, 0.08)' 
+          : '1px solid rgba(0, 0, 0, 0.06)',
+        boxShadow: isScrolled 
+          ? '0 4px 20px rgba(0, 0, 0, 0.08)' 
+          : '0 1px 3px rgba(0, 0, 0, 0.05)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '1rem 2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '2rem',
+        }}
+      >
+        {/* Logo Section */}
+        <div 
+          onClick={() => router.push('/dashboard')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease',
+            flex: '0 0 auto',
+            marginLeft: '-0.5rem',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          <Logo size="medium" showText={true} horizontal={true} />
+        </div>
+
+        {/* Right Section */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1.25rem',
+          flexWrap: 'wrap',
+        }}>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              border: '1px solid rgba(0,0,0,0.1)',
+              background: 'white',
+              color: '#475569',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            }}
+            title={theme === 'light' ? 'Ativar modo escuro' : 'Ativar modo claro'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+            }}
+          >
+            {theme === 'light' ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+              </svg>
+            )}
+          </button>
+          {/* Active Workspace */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {activeWorkspace && (
+              <div
+                onClick={() => setShowWorkspaceMenu((prev) => !prev)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.65rem',
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '12px',
+                  background: 'rgba(100, 116, 139, 0.08)',
+                  border: '1px solid rgba(100, 116, 139, 0.15)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                title="Gerenciar workspaces"
+              >
+                <div
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    background: activeWorkspace.color || '#667eea',
+                    boxShadow: `0 0 0 4px ${(activeWorkspace.color || '#667eea')}20`,
+                    flexShrink: 0,
+                  }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Workspace</span>
+                  <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.9rem' }}>
+                    {activeWorkspace.name}
+                  </span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#475569' }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+                {showWorkspaceMenu && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 8px)',
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 30px rgba(15,23,42,0.12)',
+                      minWidth: '220px',
+                      padding: '0.5rem',
+                      zIndex: 1100,
+                    }}
+                  >
+                    {workspaces.map((ws) => (
+                      <button
+                        key={ws.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowWorkspaceMenu(false);
+                          confirmAndSetWorkspace(ws.id);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '0.6rem 0.75rem',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: activeWorkspace.id === ws.id ? `${ws.color || '#667eea'}15` : 'white',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.6rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            background: ws.color || '#667eea',
+                          }}
+                        />
+                        <span style={{ fontWeight: 700, flex: 1 }}>{ws.name}</span>
+                        {activeWorkspace.id === ws.id && (
+                          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M16 6 8.5 13.5 4 9" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowWorkspaceMenu(false);
+                        router.push('/connections');
+                      }}
+                      style={{
+                        marginTop: '0.35rem',
+                        width: '100%',
+                        padding: '0.6rem 0.75rem',
+                        borderRadius: '10px',
+                        border: '1px dashed #cbd5e1',
+                        background: '#f8fafc',
+                        color: '#334155',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t.workspaces.goManage}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* User Greeting */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.5rem 1rem',
+            borderRadius: '12px',
+            background: 'rgba(102, 126, 234, 0.05)',
+            border: '1px solid rgba(102, 126, 234, 0.1)',
+          }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: '600',
+              fontSize: '0.9375rem',
+              flexShrink: 0,
+          }}>
+            {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <span style={{ 
+                fontSize: '0.8125rem', 
+                color: '#64748b',
+                lineHeight: '1.2',
+              }}>
+                {t.navbar.hello}
+              </span>
+              <span style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600',
+                color: '#1e293b',
+                lineHeight: '1.2',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {user?.name || user?.email || 'Usuário'}
+              </span>
+            </div>
+          </div>
+
+          {/* Language Selector */}
+          <LanguageSelector />
+
+          {/* Connect Button */}
+          {!isLoading && !hasConnections && (
+            <button
+              onClick={() => router.push('/connections')}
+              style={{
+                padding: '0.625rem 1.5rem',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.9375rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                height: '40px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>{t.navbar.linkSocialNetworks}</span>
+            </button>
+          )}
+
+          {/* New Post Button */}
+          <button
+            onClick={() => router.push('/new-post')}
+            style={{
+              padding: '0.625rem 1.5rem',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.9375rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.625rem',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              height: '40px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>{t.navbar.newPost.replace('+ ', '')}</span>
+          </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => authService.logout()}
+            style={{
+              padding: '0.625rem 1.25rem',
+              background: 'white',
+              color: '#64748b',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: '500',
+              fontSize: '0.9375rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.625rem',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              height: '40px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#fef2f2';
+              e.currentTarget.style.borderColor = '#fecaca';
+              e.currentTarget.style.color = '#dc2626';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'white';
+              e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.color = '#64748b';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>{t.navbar.logout}</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+    {workspaceModalOpen && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+          padding: '1rem',
+        }}
+      >
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            width: '100%',
+            maxWidth: '520px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+          }}
+        >
+          <h3 style={{ margin: 0, marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+            {t.workspaces.confirmSwitchTitle}
+          </h3>
+          <p style={{ margin: 0, marginBottom: '1rem', color: '#475569' }}>
+            {t.workspaces.choose}
+          </p>
+
+          {isLoadingWorkspaces ? (
+            <p style={{ color: '#475569' }}>{t.common.loading}</p>
+          ) : workspaces.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+              {workspaces.map((workspace) => (
+                <label
+                  key={workspace.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: workspaceModalSelection === workspace.id ? `2px solid ${workspace.color || '#667eea'}` : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    background: workspaceModalSelection === workspace.id ? `${workspace.color || '#667eea'}14` : '#f8fafc',
+                  }}
+                  onClick={() => setWorkspaceModalSelection(workspace.id)}
+                >
+                  <input
+                    type="radio"
+                    checked={workspaceModalSelection === workspace.id}
+                    onChange={() => setWorkspaceModalSelection(workspace.id)}
+                  />
+                  <div
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      background: workspace.color || '#667eea',
+                      boxShadow: `0 0 0 4px ${(workspace.color || '#667eea')}22`,
+                    }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>{workspace.name}</span>
+                    <span style={{ color: '#475569', fontSize: '0.9rem' }}>{t.workspaces.active}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <div style={{ marginBottom: '1rem', color: '#475569' }}>{t.workspaces.noWorkspaces}</div>
+          )}
+
+          {workspaces.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => confirmAndSetWorkspace(workspaceModalSelection, false)}
+                disabled={!workspaceModalSelection}
+                style={{
+                  padding: '0.9rem 1.4rem',
+                  background: workspaceModalSelection ? '#667eea' : '#cbd5e1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: workspaceModalSelection ? 'pointer' : 'not-allowed',
+                  fontWeight: 700,
+                  minWidth: '180px',
+                }}
+              >
+                {t.workspaces.confirmSwitchTitle}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+      <ConfirmDialog
+        open={Boolean(confirmData)}
+        title={t.workspaces.choose || 'Selecionar workspace'}
+        message={confirmData?.message || ''}
+        confirmLabel={t.workspaces.choose || 'Selecionar workspace'}
+        cancelLabel=""
+        onConfirm={() => {
+          if (confirmData?.targetId) {
+            confirmAndSetWorkspace(confirmData.targetId, false);
+          }
+          localStorage.setItem('workspacePromptSeen', 'true');
+          setConfirmData(null);
+        }}
+        onCancel={() => setConfirmData(null)}
+      />
+    <style jsx global>{`
+        :root {
+          --bg: #f3f4f6;
+          --text: #0f172a;
+        }
+        :root[data-theme='dark'] {
+          --bg: #0b1220;
+          --text: #e2e8f0;
+        }
+        body {
+          background: var(--bg);
+          color: var(--text);
+          transition: background 0.25s ease, color 0.25s ease;
+        }
+        :root[data-theme='dark'] body {
+          filter: invert(0.92) hue-rotate(180deg);
+        }
+        :root[data-theme='dark'] img,
+        :root[data-theme='dark'] svg {
+          filter: invert(1) hue-rotate(180deg);
+        }
+      `}</style>
+    </>
+  );
+}
+

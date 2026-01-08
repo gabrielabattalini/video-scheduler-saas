@@ -15,7 +15,7 @@ export class StorageService {
     try {
       await s3Client.send(new HeadBucketCommand({ Bucket: storageConfig.bucket }));
       console.log('✅ Bucket já existe:', storageConfig.bucket);
-    } catch (error) {
+    } catch (error: any) {
       // Em alguns SDKs/implementações o "NotFound" pode vir como 'NotFound' ou statusCode 404
       const name = error?.name;
       const status = error?.$metadata?.httpStatusCode;
@@ -30,13 +30,13 @@ export class StorageService {
     }
   }
 
-  static generateFileName(originalName) {
+  static generateFileName(originalName: string) {
     const ext = path.extname(originalName);
     const hash = crypto.randomBytes(16).toString('hex');
     return `${Date.now()}-${hash}${ext}`;
   }
 
-  static async uploadFile(file) {
+  static async uploadFile(file: Express.Multer.File) {
     const fileName = this.generateFileName(file.originalname);
     const key = `videos/${fileName}`;
 
@@ -55,7 +55,7 @@ export class StorageService {
     return key;
   }
 
-  static async uploadThumbnail(buffer, videoKey) {
+  static async uploadThumbnail(buffer: Buffer, videoKey: string) {
     const fileName = path.basename(videoKey, path.extname(videoKey));
     const key = `thumbnails/${fileName}.jpg`;
 
@@ -70,7 +70,7 @@ export class StorageService {
     return key;
   }
 
-  static async getSignedUrl(key) {
+  static async getSignedUrl(key: string) {
     const command = new GetObjectCommand({
       Bucket: storageConfig.bucket,
       Key: key,
@@ -79,7 +79,7 @@ export class StorageService {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
   }
 
-  static async deleteFile(key) {
+  static async deleteFile(key: string) {
     const command = new DeleteObjectCommand({
       Bucket: storageConfig.bucket,
       Key: key,
@@ -88,7 +88,7 @@ export class StorageService {
     await s3Client.send(command);
   }
 
-  static validateFile(file) {
+  static validateFile(file: Express.Multer.File) {
     if (!storageConfig.allowedMimeTypes.includes(file.mimetype)) {
       return {
         valid: false,

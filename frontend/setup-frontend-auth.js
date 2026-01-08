@@ -1,21 +1,21 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Configurando frontend com autenticação JWT...\n');
+console.log('ðŸš€ Configurando frontend com autenticaÃ§Ã£o JWT...\n');
 
 // Criar pasta lib
-console.log('📁 Criando estrutura de pastas...');
+console.log('ðŸ“ Criando estrutura de pastas...');
 if (!fs.existsSync('lib')) {
   fs.mkdirSync('lib', { recursive: true });
-  console.log('   ✅ lib/');
+  console.log('   âœ… lib/');
 }
 console.log('');
 
 // 1. lib/api.ts
-console.log('📝 Criando arquivos...');
+console.log('ðŸ“ Criando arquivos...');
 fs.writeFileSync('lib/api.ts', `import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://autoedito.com';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -24,7 +24,7 @@ export const api = axios.create({
   },
 });
 
-// Interceptor para adicionar token em todas as requisições
+// Interceptor para adicionar token em todas as requisiÃ§Ãµes
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -75,7 +75,7 @@ api.interceptors.response.use(
   }
 );
 `);
-console.log('   ✅ lib/api.ts');
+console.log('   âœ… lib/api.ts');
 
 // 2. lib/auth.ts
 fs.writeFileSync('lib/auth.ts', `import { api } from './api';
@@ -146,7 +146,7 @@ export const authService = {
   },
 };
 `);
-console.log('   ✅ lib/auth.ts');
+console.log('   âœ… lib/auth.ts');
 
 // 3. app/login/page.tsx
 if (!fs.existsSync('app/login')) {
@@ -213,7 +213,7 @@ export default function LoginPage() {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
-          🎬 Video Scheduler
+          ðŸŽ¬ Autoedito
         </h1>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
@@ -302,7 +302,7 @@ export default function LoginPage() {
 
           <input
             type="password"
-            placeholder="Senha (mínimo 6 caracteres)"
+            placeholder="Senha (mÃ­nimo 6 caracteres)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -347,12 +347,12 @@ export default function LoginPage() {
           color: '#666'
         }}>
           <p style={{ margin: 0, marginBottom: '0.5rem' }}>
-            🔐 <strong>Segurança:</strong>
+            ðŸ” <strong>SeguranÃ§a:</strong>
           </p>
           <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
             <li>Senhas criptografadas com bcrypt</li>
-            <li>JWT tokens com expiração</li>
-            <li>Renovação automática de tokens</li>
+            <li>JWT tokens com expiraÃ§Ã£o</li>
+            <li>RenovaÃ§Ã£o automÃ¡tica de tokens</li>
           </ul>
         </div>
       </div>
@@ -360,7 +360,7 @@ export default function LoginPage() {
   );
 }
 `);
-console.log('   ✅ app/login/page.tsx');
+console.log('   âœ… app/login/page.tsx');
 
 // 4. app/dashboard/page.tsx
 if (!fs.existsSync('app/dashboard')) {
@@ -442,10 +442,10 @@ export default function DashboardPage() {
           alignItems: 'center'
         }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            🎬 Video Scheduler
+            ðŸŽ¬ Autoedito
           </h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <span style={{ color: '#666' }}>Olá, {user?.name || user?.email}</span>
+            <span style={{ color: '#666' }}>OlÃ¡, {user?.name || user?.email}</span>
             <button
               onClick={() => router.push('/new-post')}
               style={{
@@ -535,10 +535,10 @@ export default function DashboardPage() {
                       fontSize: '0.875rem',
                       color: '#888'
                     }}>
-                      <span>📱 {post.platform}</span>
-                      <span>📊 {post.status}</span>
+                      <span>ðŸ“± {post.platform}</span>
+                      <span>ðŸ“Š {post.status}</span>
                       {post.scheduledAt && (
-                        <span>📅 {new Date(post.scheduledAt).toLocaleString('pt-BR')}</span>
+                        <span>ðŸ“… {new Date(post.scheduledAt).toLocaleString('pt-BR')}</span>
                       )}
                     </div>
                   </div>
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    🗑️ Deletar
+                    ðŸ—‘ï¸ Deletar
                   </button>
                 </div>
               </div>
@@ -566,7 +566,7 @@ export default function DashboardPage() {
   );
 }
 `);
-console.log('   ✅ app/dashboard/page.tsx');
+console.log('   âœ… app/dashboard/page.tsx');
 
 // 5. app/new-post/page.tsx
 if (!fs.existsSync('app/new-post')) {
@@ -633,7 +633,7 @@ export default function NewPostPage() {
           alignItems: 'center'
         }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            🎬 Video Scheduler
+            ðŸŽ¬ Autoedito
           </h1>
           <button
             onClick={() => router.push('/dashboard')}
@@ -646,7 +646,7 @@ export default function NewPostPage() {
               cursor: 'pointer'
             }}
           >
-            ← Voltar
+            â† Voltar
           </button>
         </div>
       </div>
@@ -663,7 +663,7 @@ export default function NewPostPage() {
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Título
+                TÃ­tulo
               </label>
               <input
                 type="text"
@@ -683,7 +683,7 @@ export default function NewPostPage() {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Descrição
+                DescriÃ§Ã£o
               </label>
               <textarea
                 value={description}
@@ -703,7 +703,7 @@ export default function NewPostPage() {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                URL do Vídeo
+                URL do VÃ­deo
               </label>
               <input
                 type="url"
@@ -768,19 +768,20 @@ export default function NewPostPage() {
   );
 }
 `);
-console.log('   ✅ app/new-post/page.tsx');
+console.log('   âœ… app/new-post/page.tsx');
 
 console.log('');
 console.log('========================================');
-console.log('✅ FRONTEND CONFIGURADO!');
+console.log('âœ… FRONTEND CONFIGURADO!');
 console.log('========================================');
 console.log('');
-console.log('📋 Próximos passos:');
+console.log('ðŸ“‹ PrÃ³ximos passos:');
 console.log('');
 console.log('1. Inicie o frontend:');
 console.log('   npm run dev');
 console.log('');
 console.log('2. Acesse:');
-console.log('   http://localhost:3000/login');
+console.log('   https://autoedito.com/login');
 console.log('');
 console.log('========================================');
+

@@ -1,11 +1,77 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { GoogleOAuthService } from '../services/google-oauth.service';
 import type { RegisterInput, LoginInput } from '../schemas/auth.schema';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 export class AuthController {
+  /**
+   * Retorna URL de autorizaÃ§Ã£o do Google
+   */
+  static async googleAuth(req: Request, res: Response) {
+    try {
+      console.log('SolicitaÃ§Ã£o de autenticaÃ§Ã£o Google recebida');
+      const authUrl = GoogleOAuthService.getAuthUrl();
+      res.json({
+        success: true,
+        data: {
+          authUrl,
+        },
+      });
+    } catch (error: any) {
+      console.error('Erro ao gerar URL de autorizaÃ§Ã£o do Google:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erro ao gerar URL de autorizaÃ§Ã£o',
+      });
+    }
+  }
+
+  /**
+   * Callback do Google OAuth
+   */
+  static async googleCallback(req: Request, res: Response) {
+    try {
+      const { code, error: oauthError } = req.query;
+
+      if (oauthError) {
+        console.error('Erro no OAuth do Google:', oauthError);
+        const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+        const errorUrl = new URL('/login', frontendUrl);
+        errorUrl.searchParams.set('error', `Erro de autorizaÃ§Ã£o: ${oauthError}`);
+        return res.redirect(errorUrl.toString());
+      }
+
+      if (!code || typeof code !== 'string') {
+        console.error('CÃ³digo de autorizaÃ§Ã£o nÃ£o fornecido');
+        return res.status(400).json({
+          success: false,
+          error: 'CÃ³digo de autorizaÃ§Ã£o nÃ£o fornecido',
+        });
+      }
+
+      console.log('Callback do Google recebido, cÃ³digo presente');
+      const result = await GoogleOAuthService.authenticateWithGoogle(code);
+      console.log('AutenticaÃ§Ã£o concluÃ­da, redirecionando...');
+
+      // Redirecionar para frontend com tokens
+      const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+      const redirectUrl = new URL('/auth/callback', frontendUrl);
+      redirectUrl.searchParams.set('accessToken', result.accessToken);
+      redirectUrl.searchParams.set('refreshToken', result.refreshToken);
+      redirectUrl.searchParams.set('user', JSON.stringify(result.user));
+
+      console.log('Redirecionando para:', redirectUrl.toString());
+      res.redirect(redirectUrl.toString());
+    } catch (error: any) {
+      console.error('Erro no callback do Google:', error);
+      console.error('Stack trace:', error.stack);
+      const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+      const errorUrl = new URL('/login', frontendUrl);
+      errorUrl.searchParams.set('error', error.message || 'Erro ao autenticar com Google');
+      res.redirect(errorUrl.toString());
+    }
+  }
   static async register(req: Request, res: Response) {
     try {
       const data: RegisterInput = req.body;
@@ -13,13 +79,13 @@ export class AuthController {
 
       res.status(201).json({
         success: true,
-        message: 'Usuário cadastrado com sucesso',
+        message: 'UsuÃ¡rio cadastrado com sucesso',
         data: result,
       });
     } catch (error: any) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Erro ao cadastrar usuário',
+        error: error.message || 'Erro ao cadastrar usuÃ¡rio',
       });
     }
   }
@@ -49,7 +115,7 @@ export class AuthController {
       if (!refreshToken) {
         return res.status(400).json({
           success: false,
-          error: 'Refresh token não fornecido',
+          error: 'Refresh token nÃ£o fornecido',
         });
       }
 
@@ -74,7 +140,7 @@ export class AuthController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuário não autenticado',
+          error: 'UsuÃ¡rio nÃ£o autenticado',
         });
       }
 
@@ -92,7 +158,7 @@ export class AuthController {
       if (!user) {
         return res.status(404).json({
           success: false,
-          error: 'Usuário não encontrado',
+          error: 'UsuÃ¡rio nÃ£o encontrado',
         });
       }
 
@@ -103,7 +169,7 @@ export class AuthController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        error: 'Erro ao buscar dados do usuário',
+        error: 'Erro ao buscar dados do usuÃ¡rio',
       });
     }
   }

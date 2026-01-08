@@ -1,265 +1,308 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { authService } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { usePosts } from '@/lib/posts-context';
+import { Navbar } from '@/components/Navbar';
+import { PostCard } from '@/components/PostCard';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { connectionsApi } from '@/lib/connections-api';
 
-type PostItem = {
-  id: string;
-  title: string;
-  description?: string;
-  platform?: 'youtube' | 'tiktok' | 'instagram';
-  videoUrl?: string;
-  createdAt?: string;
-  status?: string; // opcional
-};
-
-export default function DashboardPage() {
+export default function Dashboard() {
   const router = useRouter();
-
-  const [checking, setChecking] = useState(true);
-  const [user, setUser] = useState<any>(null);
-
-  const [loadingPosts, setLoadingPosts] = useState(false);
-  const [posts, setPosts] = useState<PostItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  const totalPosts = useMemo(() => posts.length, [posts.length]);
+  const { posts, deletePost, isLoading, refreshPosts } = usePosts();
+  const { t } = useLanguage();
+  const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'published' | 'draft' | 'pending'>('all');
+  const [workspaceFilter, setWorkspaceFilter] = useState<string>('all');
+  const [connectionsCount, setConnectionsCount] = useState<number | null>(null);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(true);
 
   useEffect(() => {
-    // 1) auth check seguro (só 1 vez)
-    try {
-      const ok = authService.isAuthenticated?.() ?? false;
-      if (!ok) {
-        router.replace('/login');
-        return;
-      }
-      setUser(authService.getUser?.() ?? null);
-    } catch (e) {
-      router.replace('/login');
+    if (!authService.isAuthenticated()) {
+      router.push('/login');
       return;
-    } finally {
-      setChecking(false);
     }
   }, [router]);
 
-  async function fetchPosts() {
-    setLoadingPosts(true);
-    setError(null);
-    try {
-      const res = await api.get('/api/posts');
-      // aceita tanto { posts: [] } quanto [] direto
-      const data = Array.isArray(res.data) ? res.data : res.data?.posts;
-      setPosts(Array.isArray(data) ? data : []);
-    } catch (e: any) {
-      setError(e?.response?.data?.error || 'Erro ao carregar posts');
-    } finally {
-      setLoadingPosts(false);
-    }
-  }
-
   useEffect(() => {
-    // 2) só busca posts depois de checar auth
-    if (!checking) fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checking]);
+    let isMounted = true;
 
-  async function handleDelete(id: string) {
-    const ok = confirm('Tem certeza que deseja deletar este post?');
-    if (!ok) return;
+    const loadConnections = async () => {
+      try {
+        if (!authService.isAuthenticated()) {
+          if (isMounted) {
+            setConnectionsCount(0);
+            setIsLoadingConnections(false);
+          }
+          return;
+        }
 
-    try {
-      await api.delete(`/api/posts/${id}`);
-      setPosts((prev) => prev.filter((p) => p.id !== id));
-    } catch (e: any) {
-      alert(e?.response?.data?.error || 'Erro ao deletar post');
+        const connections = await connectionsApi.list();
+        if (isMounted) {
+          setConnectionsCount(connections.length);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar conexoes no dashboard:', error);
+        if (isMounted) {
+          setConnectionsCount(0);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingConnections(false);
+        }
+      }
+    };
+
+    loadConnections();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const stats = {
+    total: posts.length,
+    scheduled: posts.filter((p) => p.status === 'scheduled').length,
+    published: posts.filter((p) => p.status === 'published').length,
+    draft: posts.filter((p) => p.status === 'draft' || p.status === 'pending').length,
+  };
+
+  const handleEdit = (id: string) => router.push(`/edit-post/${id}`);
+  const handleDelete = async (id: string) => {
+    if (confirm(`${t.common.delete}?`)) {
+      try {
+        await deletePost(id);
+      } catch (error: any) {
+        alert(error.message || t.common.error);
+      }
     }
-  }
+  };
 
-  function handleLogout() {
-    try {
-      authService.logout?.();
-    } finally {
-      router.replace('/login');
-    }
-  }
-
-  if (checking) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', fontFamily: 'system-ui' }}>
-        <div>Carregando...</div>
-      </div>
-    );
-  }
+  const statCards = [
+    { label: t.dashboard.posts, value: stats.total, emoji: '🎬' },
+    { label: t.dashboard.scheduled, value: stats.scheduled, emoji: '📅' },
+    { label: t.dashboard.published, value: stats.published, emoji: '✅' },
+    { label: t.dashboard.drafts, value: stats.draft, emoji: '📝' },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      {/* Topbar */}
-      <div style={{ background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', padding: '14px 16px' }}>
+    <div style={{ minHeight: '100vh', background: '#f3f4f6' }}>
+      <Navbar />
+      <main style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' }}>
         <div
           style={{
-            maxWidth: 1100,
-            margin: '0 auto',
+            marginBottom: '1.5rem',
+            background: 'linear-gradient(135deg, #ecfeff 0%, #eef2ff 100%)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            boxShadow: '0 10px 25px -15px rgba(0, 0, 0, 0.2)',
             display: 'flex',
             alignItems: 'center',
+            gap: '1.25rem',
+            flexWrap: 'wrap',
             justifyContent: 'space-between',
-            gap: 12,
           }}
         >
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 900 }}>🎬 Video Scheduler</div>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>
-              {user?.email || user?.name ? `Logado: ${user?.name || user?.email}` : 'Dashboard'}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => router.push('/new-post')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '260px' }}>
+            <div
               style={{
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: 'none',
-                background: '#111827',
-                color: 'white',
-                cursor: 'pointer',
-                fontWeight: 800,
-              }}
-            >
-              ➕ Novo post
-            </button>
-
-            <button
-              onClick={fetchPosts}
-              style={{
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: '1px solid #e5e7eb',
+                width: '54px',
+                height: '54px',
+                borderRadius: '14px',
                 background: 'white',
-                cursor: 'pointer',
-                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 20px rgba(102, 126, 234, 0.25)',
+                color: '#0ea5e9',
+                flexShrink: 0,
               }}
             >
-              🔄 Atualizar
-            </button>
-
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '10px 12px',
-                borderRadius: 10,
-                border: 'none',
-                background: '#ef4444',
-                color: 'white',
-                cursor: 'pointer',
-                fontWeight: 800,
-              }}
-            >
-              Sair
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Conteúdo */}
-      <div style={{ maxWidth: 1100, margin: '22px auto', padding: '0 16px' }}>
-        {/* Cards de resumo */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-          <div style={{ background: 'white', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Total de posts</div>
-            <div style={{ fontSize: 26, fontWeight: 900, marginTop: 6 }}>{totalPosts}</div>
-          </div>
-
-          <div style={{ background: 'white', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>Status</div>
-            <div style={{ fontSize: 14, marginTop: 8 }}>
-              {loadingPosts ? 'Carregando lista…' : error ? `⚠️ ${error}` : '✅ OK'}
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7.5 7.5 10 10" />
+                <path d="M14 14 16.5 16.5" />
+                <circle cx="6" cy="6" r="3.5" />
+                <circle cx="18" cy="18" r="3.5" />
+                <path d="m8.5 11.5 3 3" />
+              </svg>
             </div>
-          </div>
-        </div>
-
-        {/* Lista */}
-        <div style={{ marginTop: 16, background: 'white', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>Seus posts</h2>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>
-              {posts.length ? `Mostrando ${posts.length}` : 'Nenhum post ainda'}
-            </div>
-          </div>
-
-          <div style={{ marginTop: 12 }}>
-            {loadingPosts ? (
-              <div style={{ padding: 16, color: '#6b7280' }}>Carregando…</div>
-            ) : posts.length === 0 ? (
-              <div style={{ padding: 16, color: '#6b7280' }}>
-                Você ainda não criou posts. Clique em <b>Novo post</b>.
+            <div style={{ display: 'grid', gap: '0.35rem', minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a' }}>{t.dashboard.connectAccounts}</div>
+              <div style={{ color: '#334155', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                {t.dashboard.connectAccountsDescription}
               </div>
-            ) : (
-              <div style={{ display: 'grid', gap: 10 }}>
-                {posts.map((p) => (
-                  <div
-                    key={p.id}
+              {!isLoadingConnections && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontWeight: 600, fontSize: '0.9rem' }}>
+                  <span
                     style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: 12,
-                      padding: 12,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 12,
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '999px',
+                      background: '#0ea5e9',
+                      color: 'white',
+                      fontSize: '0.9rem',
                     }}
                   >
-                    <div style={{ minWidth: 240 }}>
-                      <div style={{ fontWeight: 900 }}>{p.title}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                        {p.platform ? `📣 ${p.platform}` : '📣 —'} {p.status ? `• ${p.status}` : ''}
-                      </div>
-                      {p.description && (
-                        <div style={{ fontSize: 12, color: '#374151', marginTop: 6 }}>
-                          {p.description.length > 120 ? p.description.slice(0, 120) + '…' : p.description}
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button
-                        onClick={() => router.push(`/edit-post?id=${encodeURIComponent(p.id)}`)}
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: 10,
-                          border: '1px solid #e5e7eb',
-                          background: 'white',
-                          cursor: 'pointer',
-                          fontWeight: 800,
-                        }}
-                      >
-                        ✏️ Editar
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: 10,
-                          border: 'none',
-                          background: '#fee2e2',
-                          cursor: 'pointer',
-                          fontWeight: 900,
-                          color: '#991b1b',
-                        }}
-                      >
-                        🗑️ Deletar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                    {connectionsCount ?? 0}
+                  </span>
+                  <span>{connectionsCount ? `${connectionsCount} ${t.dashboard.connectedAccounts}` : t.dashboard.noConnections}</span>
+                </div>
+              )}
+            </div>
           </div>
+          <button
+            onClick={() => router.push('/connections')}
+            style={{
+              padding: '0.85rem 1.25rem',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              boxShadow: '0 10px 20px -8px rgba(14, 165, 233, 0.4)',
+              transition: 'all 0.2s ease',
+              minWidth: '200px',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 14px 28px -10px rgba(14, 165, 233, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 10px 20px -8px rgba(14, 165, 233, 0.4)';
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+              <path d="M16.5 4.5 20 8" />
+              <path d="M4 16 7.5 19.5" />
+            </svg>
+            <span>{t.dashboard.manageConnections}</span>
+          </button>
         </div>
-      </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem',
+          }}
+        >
+          {statCards.map((stat) => (
+            <div
+              key={stat.label}
+              style={{
+                background: 'white',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span style={{ fontSize: '2rem' }}>{stat.emoji}</span>
+                <div>
+                  <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>{stat.label}</p>
+                  <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: '#1e293b' }}>{stat.value}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#1e293b' }}>{t.dashboard.recentPosts}</h2>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+                {posts.length > 0
+                  ? `${posts.length} ${t.dashboard.posts.toLowerCase()}`
+                  : t.dashboard.noPosts}
+              </p>
+            </div>
+            <button
+              onClick={() => refreshPosts()}
+              style={{
+                padding: '0.5rem 1rem',
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                color: '#475569',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f8fafc';
+                e.currentTarget.style.borderColor = '#cbd5e1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            >
+              ↻ Atualizar
+            </button>
+          </div>
+
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>{t.common.loading}</div>
+          ) : posts.length === 0 ? (
+            <div
+              style={{
+                background: 'white',
+                padding: '3rem',
+                textAlign: 'center',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎬</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1e293b' }}>
+                {t.dashboard.noPosts}
+              </h3>
+              <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+                {t.dashboard.createFirstPost}
+              </p>
+              <button
+                onClick={() => router.push('/new-post')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                {t.navbar.newPost}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} onEdit={handleEdit} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
+

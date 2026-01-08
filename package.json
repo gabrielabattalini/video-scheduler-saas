@@ -1,0 +1,19 @@
+{
+  "name": "video-scheduler-saas",
+  "version": "1.0.0",
+  "description": "Autoedito - Agende e publique vídeos em múltiplas plataformas",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./start.ps1",
+    "start:windows": "start.bat",
+    "start:unix": "bash start.sh",
+    "stop": "powershell -ExecutionPolicy Bypass -File ./stop.ps1",
+    "stop:windows": "stop.bat",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd backend && npm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2"
+  }
+}

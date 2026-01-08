@@ -1,384 +1,818 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { usePosts, type Platform } from '@/lib/posts-context';
+import { authService } from '@/lib/auth';
+import { postsApi } from '@/lib/posts-api';
+import { Navbar } from '@/components/Navbar';
+import { generateTimeSlots, combineDateAndTime, splitDateTime, isFutureDateTime, getMinDateTime } from '@/lib/date-utils';
 
-export default function EditPostPage() {
+const platforms: { value: Platform; label: string; icon: string; color: string }[] = [
+  { value: 'youtube', label: 'YouTube', icon: '📺', color: '#FF0000' },
+  { value: 'tiktok', label: 'TikTok', icon: '🎵', color: '#000000' },
+  { value: 'instagram', label: 'Instagram', icon: '📸', color: '#E4405F' },
+];
+
+export default function EditPost() {
+  const router = useRouter();
+  const { id } = useParams<{ id: string }>();
+  const { updatePost, deletePost } = usePosts();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [platform, setPlatform] = useState('youtube');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [loadingPost, setLoadingPost] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
-  const params = useParams();
-  const postId = params.id;
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['youtube']);
+  const [publishOption, setPublishOption] = useState<'immediate' | 'scheduled' | 'draft'>('draft');
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('12:00');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPost, setIsLoadingPost] = useState(true);
+  const [error, setError] = useState('');
+  const [dateTimeError, setDateTimeError] = useState('');
+
+  const timeSlots = generateTimeSlots();
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    if (!authService.isAuthenticated()) {
       router.push('/login');
       return;
     }
-    setUser(JSON.parse(userData));
-    loadPost();
-  }, []);
+
+    if (id) {
+      loadPost();
+    }
+  }, [id, router]);
 
   const loadPost = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3001/api/posts/${postId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      setIsLoadingPost(true);
+      const post = await postsApi.get(id as string);
+      setTitle(post.title);
+      setDescription(post.description || '');
+      setVideoUrl(post.videoUrl || '');
       
-      if (res.ok) {
-        const data = await res.json();
-        const post = data.post || data;
-        
-        setTitle(post.title);
-        setDescription(post.description || '');
-        setVideoUrl(post.videoUrl);
-        setPlatform(post.platform);
-        setScheduledAt(post.scheduledAt ? post.scheduledAt.slice(0, 16) : '');
+      // Load platforms - support both new (platforms array) and old (platform string) format
+      const platformsArray = post.platforms || (post.platform ? [post.platform as Platform] : ['youtube']);
+      setSelectedPlatforms(platformsArray);
+
+      // Determine publish option based on post data
+      if (post.status === 'published') {
+        setPublishOption('immediate');
+      } else if (post.scheduledAt) {
+        setPublishOption('scheduled');
+        const { date, time } = splitDateTime(post.scheduledAt);
+        setScheduleDate(date);
+        setScheduleTime(time || '12:00');
       } else {
-        alert('Post não encontrado');
-        router.push('/dashboard');
+        setPublishOption('draft');
       }
-    } catch (error) {
-      alert('Erro ao carregar post');
-      router.push('/dashboard');
+
+      // Set default date if not set
+      if (!scheduleDate) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        setScheduleDate(`${year}-${month}-${day}`);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erro ao carregar post');
+      setTimeout(() => router.push('/dashboard'), 2000);
     } finally {
-      setLoadingPost(false);
+      setIsLoadingPost(false);
     }
+  };
+
+  // Validate date/time when they change
+  useEffect(() => {
+    if (publishOption === 'scheduled' && scheduleDate && scheduleTime) {
+      if (!isFutureDateTime(scheduleDate, scheduleTime)) {
+        setDateTimeError('A data e hora devem ser no futuro');
+      } else {
+        setDateTimeError('');
+      }
+    } else {
+      setDateTimeError('');
+    }
+  }, [scheduleDate, scheduleTime, publishOption]);
+
+  const togglePlatform = (platform: Platform) => {
+    setSelectedPlatforms((prev) => {
+      if (prev.includes(platform)) {
+        // Remove platform if already selected, but keep at least one
+        if (prev.length > 1) {
+          return prev.filter((p) => p !== platform);
+        }
+        return prev;
+      } else {
+        // Add platform
+        return [...prev, platform];
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!id) return;
+
+    setError('');
+    setDateTimeError('');
     
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3001/api/posts/${postId}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          videoUrl,
-          platform,
-          scheduledAt: scheduledAt || null
-        })
-      });
-      
-      if (res.ok) {
-        alert('Post atualizado com sucesso! ✅');
-        router.push('/dashboard');
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Erro ao atualizar post');
+    if (selectedPlatforms.length === 0) {
+      setError('Selecione pelo menos uma plataforma');
+      return;
+    }
+
+    if (publishOption === 'scheduled' && scheduleDate && scheduleTime) {
+      if (!isFutureDateTime(scheduleDate, scheduleTime)) {
+        setDateTimeError('A data e hora devem ser no futuro');
+        return;
       }
-    } catch (error) {
-      alert('Erro de conexão');
+    }
+
+    setIsLoading(true);
+
+    try {
+      let scheduledAt: string | undefined;
+      
+      if (publishOption === 'immediate') {
+        scheduledAt = new Date().toISOString();
+      } else if (publishOption === 'scheduled' && scheduleDate && scheduleTime) {
+        scheduledAt = combineDateAndTime(scheduleDate, scheduleTime);
+      }
+
+      await updatePost(id as string, {
+        title,
+        description: description || undefined,
+        videoUrl: videoUrl || undefined,
+        platforms: selectedPlatforms,
+        scheduledAt,
+      });
+      alert('Post atualizado! ✅');
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Erro ao atualizar post');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  if (loadingPost) {
+  const handleDelete = async () => {
+    if (!id) return;
+    if (confirm('Tem certeza que deseja deletar este post?')) {
+      try {
+        await deletePost(id as string);
+        alert('Post deletado com sucesso');
+        router.push('/dashboard');
+      } catch (err: any) {
+        alert(err.message || 'Erro ao deletar post');
+      }
+    }
+  };
+
+  if (isLoadingPost) {
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#f3f4f6'}}>
-        <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'3rem',marginBottom:'1rem'}}>⏳</div>
-          <p style={{color:'#666'}}>Carregando post...</p>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(to bottom, #f8fafc, #e2e8f0)',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
+          <div style={{ fontSize: '1.125rem', color: '#64748b', fontWeight: '500' }}>Carregando post...</div>
         </div>
       </div>
     );
   }
 
+  const primaryPlatform = platforms.find((p) => selectedPlatforms.includes(p.value));
+  const minDateTime = getMinDateTime();
+  const [minDate] = minDateTime.split('T');
+
   return (
-    <div style={{minHeight:'100vh',background:'#f3f4f6',fontFamily:'sans-serif',padding:'2rem'}}>
-      <div style={{maxWidth:'700px',margin:'0 auto'}}>
-        <button 
-          onClick={() => router.push('/dashboard')} 
-          style={{marginBottom:'1.5rem',padding:'0.5rem 1rem',background:'white',border:'1px solid #ddd',borderRadius:'8px',cursor:'pointer',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #f8fafc, #e2e8f0)' }}>
+      <Navbar />
+      <main style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1rem' }}>
+        <button
+          onClick={() => router.push('/dashboard')}
+          style={{
+            padding: '0.5rem 1rem',
+            background: 'white',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#64748b',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f1f5f9';
+            e.currentTarget.style.color = '#334155';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.style.color = '#64748b';
+          }}
+        >
           ← Voltar ao Dashboard
         </button>
 
-        <div style={{background:'white',padding:'2.5rem',borderRadius:'16px',boxShadow:'0 4px 12px rgba(0,0,0,0.1)'}}>
-          <h1 style={{fontSize:'2rem',marginBottom:'0.5rem',color:'#333'}}>✏️ Editar Post</h1>
-          <p style={{color:'#666',marginBottom:'2rem'}}>Atualize as informações do seu post</p>
+        <div
+          style={{
+            background: 'white',
+            padding: '2.5rem',
+            borderRadius: '16px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '2rem' }}>
+            <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1e293b' }}>
+                Editar Post
+              </h1>
+              <p style={{ color: '#64748b', fontSize: '0.95rem' }}>Atualize as informações do seu post</p>
+            </div>
+            <button
+              onClick={handleDelete}
+              style={{
+                padding: '0.625rem 1.25rem',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#dc2626';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ef4444';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              🗑️ Deletar
+            </button>
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{marginBottom:'1.5rem'}}>
-              <label style={{display:'block',marginBottom:'0.5rem',fontWeight:'600',color:'#374151'}}>
+          {error && (
+            <div
+              style={{
+                background: '#fee2e2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1.5rem',
+                fontSize: '0.875rem',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Título */}
+            <div>
+              <label
+                htmlFor="title"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '600',
+                  color: '#334155',
+                  fontSize: '0.95rem',
+                }}
+              >
                 Título *
               </label>
               <input
+                id="title"
                 type="text"
+                placeholder="Ex: Meu vídeo incrível"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                placeholder="Ex: Meu vídeo incrível"
-                style={{width:'100%',padding:'0.875rem',border:'2px solid #e5e7eb',borderRadius:'10px',fontSize:'1rem',outline:'none',transition:'border-color 0.3s',boxSizing:'border-box'}}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  transition: 'all 0.2s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.outline = 'none';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
 
-            <div style={{marginBottom:'1.5rem'}}>
-              <label style={{display:'block',marginBottom:'0.5rem',fontWeight:'600',color:'#374151'}}>
+            {/* Descrição */}
+            <div>
+              <label
+                htmlFor="description"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '600',
+                  color: '#334155',
+                  fontSize: '0.95rem',
+                }}
+              >
                 Descrição
               </label>
               <textarea
+                id="description"
+                placeholder="Descreva seu vídeo..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                placeholder="Descreva seu vídeo..."
-                style={{width:'100%',padding:'0.875rem',border:'2px solid #e5e7eb',borderRadius:'10px',fontSize:'1rem',outline:'none',resize:'vertical',transition:'border-color 0.3s',fontFamily:'inherit',boxSizing:'border-box'}}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                  transition: 'all 0.2s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.outline = 'none';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
 
-            <div style={{marginBottom:'1.5rem'}}>
-              <label style={{display:'block',marginBottom:'0.75rem',fontWeight:'600',color:'#374151'}}>
-                URL do Vídeo *
+            {/* URL do Vídeo */}
+            <div>
+              <label
+                htmlFor="videoUrl"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '600',
+                  color: '#334155',
+                  fontSize: '0.95rem',
+                }}
+              >
+                URL do Vídeo
               </label>
               <input
+                id="videoUrl"
                 type="url"
+                placeholder="https://exemplo.com/video.mp4"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                required
-                placeholder="https://drive.google.com/file/d/... ou https://exemplo.com/video.mp4"
-                style={{width:'100%',padding:'0.875rem',border:'2px solid #e5e7eb',borderRadius:'10px',fontSize:'1rem',outline:'none',transition:'border-color 0.3s',boxSizing:'border-box'}}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  transition: 'all 0.2s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#667eea';
+                  e.currentTarget.style.outline = 'none';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
 
-            <div style={{marginBottom:'1.5rem'}}>
-              <label style={{display:'block',marginBottom:'0.75rem',fontWeight:'600',color:'#374151'}}>
-                📅 Agendar Publicação (opcional)
+            {/* Plataformas (Múltipla Seleção) */}
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '1rem',
+                  fontWeight: '600',
+                  color: '#334155',
+                  fontSize: '0.95rem',
+                }}
+              >
+                Plataformas * (Selecione uma ou mais)
+                {selectedPlatforms.length > 0 && (
+                  <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#64748b', marginLeft: '0.5rem' }}>
+                    ({selectedPlatforms.length} selecionada{selectedPlatforms.length > 1 ? 's' : ''})
+                  </span>
+                )}
               </label>
-              
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'1rem'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                {platforms.map((p) => {
+                  const isSelected = selectedPlatforms.includes(p.value);
+                  const isOnlySelected = isSelected && selectedPlatforms.length === 1;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => togglePlatform(p.value)}
+                      disabled={isOnlySelected}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '12px',
+                        border: `2px solid ${isSelected ? p.color : '#e2e8f0'}`,
+                        background: isSelected ? `${p.color}15` : 'white',
+                        cursor: isOnlySelected ? 'not-allowed' : 'pointer',
+                        fontWeight: isSelected ? '600' : '500',
+                        transition: 'all 0.2s',
+                        color: isSelected ? p.color : '#64748b',
+                        opacity: isOnlySelected ? 0.6 : 1,
+                        position: 'relative',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isOnlySelected) {
+                          e.currentTarget.style.borderColor = isSelected ? p.color : p.color;
+                          e.currentTarget.style.background = isSelected ? `${p.color}20` : `${p.color}05`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isOnlySelected) {
+                          e.currentTarget.style.borderColor = isSelected ? p.color : '#e2e8f0';
+                          e.currentTarget.style.background = isSelected ? `${p.color}15` : 'white';
+                        }
+                      }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>{p.icon}</span>
+                      <span style={{ fontSize: '0.95rem' }}>{p.label}</span>
+                      {isSelected && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '0.5rem',
+                            right: '0.5rem',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: p.color,
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.875rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedPlatforms.length === 0 && (
+                <p style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.5rem' }}>
+                  Selecione pelo menos uma plataforma
+                </p>
+              )}
+            </div>
+
+            {/* Opções de Publicação */}
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '1rem',
+                  fontWeight: '600',
+                  color: '#334155',
+                  fontSize: '0.95rem',
+                }}
+              >
+                Quando publicar? *
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    border: `2px solid ${publishOption === 'immediate' ? '#10b981' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    background: publishOption === 'immediate' ? '#d1fae5' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="publishOption"
+                    value="immediate"
+                    checked={publishOption === 'immediate'}
+                    onChange={(e) => setPublishOption(e.target.value as any)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                      🚀 Publicar Imediatamente
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#475569' }}>
+                      O post será publicado agora
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    border: `2px solid ${publishOption === 'scheduled' ? '#667eea' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    background: publishOption === 'scheduled' ? '#f0f4ff' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="publishOption"
+                    value="scheduled"
+                    checked={publishOption === 'scheduled'}
+                    onChange={(e) => setPublishOption(e.target.value as any)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                      📅 Agendar Publicação
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#475569' }}>
+                      Escolha data e hora específicas
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    border: `2px solid ${publishOption === 'draft' ? '#64748b' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    background: publishOption === 'draft' ? '#f1f5f9' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="publishOption"
+                    value="draft"
+                    checked={publishOption === 'draft'}
+                    onChange={(e) => setPublishOption(e.target.value as any)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                      💾 Salvar como Rascunho
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#475569' }}>
+                      Salvar sem publicar
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Data e Hora (quando agendado) */}
+            {publishOption === 'scheduled' && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  padding: '1.5rem',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
                 <div>
-                  <label style={{display:'block',marginBottom:'0.5rem',fontSize:'0.875rem',color:'#6b7280'}}>
+                  <label
+                    htmlFor="scheduleDate"
+                    style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '600',
+                      color: '#334155',
+                      fontSize: '0.875rem',
+                    }}
+                  >
                     Data
                   </label>
                   <input
+                    id="scheduleDate"
                     type="date"
-                    value={scheduledAt.split('T')[0] || ''}
-                    onChange={(e) => {
-                      const time = scheduledAt.split('T')[1] || '12:00';
-                      setScheduledAt(e.target.value ? `${e.target.value}T${time}` : '');
-                    }}
-                    min={new Date().toISOString().split('T')[0]}
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    min={minDate}
+                    required={publishOption === 'scheduled'}
                     style={{
-                      width:'100%',
-                      padding:'0.875rem',
-                      border:'2px solid #e5e7eb',
-                      borderRadius:'10px',
-                      fontSize:'1rem',
-                      outline:'none',
-                      transition:'border-color 0.3s',
-                      boxSizing:'border-box',
-                      cursor:'pointer'
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: dateTimeError ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      background: 'white',
+                      transition: 'all 0.2s',
                     }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#667eea';
+                      e.currentTarget.style.outline = 'none';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = dateTimeError ? '#dc2626' : '#e2e8f0';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
-
                 <div>
-                  <label style={{display:'block',marginBottom:'0.5rem',fontSize:'0.875rem',color:'#6b7280'}}>
-                    Hora
+                  <label
+                    htmlFor="scheduleTime"
+                    style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '600',
+                      color: '#334155',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Hora (intervalos de 15 min)
                   </label>
                   <select
-                    value={scheduledAt.split('T')[1]?.split(':')[0] || '12'}
-                    onChange={(e) => {
-                      const date = scheduledAt.split('T')[0] || new Date().toISOString().split('T')[0];
-                      const minute = scheduledAt.split(':')[1] || '00';
-                      setScheduledAt(`${date}T${e.target.value}:${minute}`);
-                    }}
+                    id="scheduleTime"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    required={publishOption === 'scheduled'}
                     style={{
-                      width:'100%',
-                      padding:'0.875rem',
-                      border:'2px solid #e5e7eb',
-                      borderRadius:'10px',
-                      fontSize:'1rem',
-                      outline:'none',
-                      cursor:'pointer',
-                      background:'white',
-                      boxSizing:'border-box'
-                    }}>
-                    {Array.from({length:24}, (_, i) => (
-                      <option key={i} value={i.toString().padStart(2, '0')}>
-                        {i.toString().padStart(2, '0')}h
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: dateTimeError ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      background: 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#667eea';
+                      e.currentTarget.style.outline = 'none';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = dateTimeError ? '#dc2626' : '#e2e8f0';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    {timeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
                       </option>
                     ))}
                   </select>
                 </div>
-
-                <div>
-                  <label style={{display:'block',marginBottom:'0.5rem',fontSize:'0.875rem',color:'#6b7280'}}>
-                    Minutos
-                  </label>
-                  <select
-                    value={scheduledAt.split(':')[1] || '00'}
-                    onChange={(e) => {
-                      const date = scheduledAt.split('T')[0] || new Date().toISOString().split('T')[0];
-                      const hour = scheduledAt.split('T')[1]?.split(':')[0] || '12';
-                      setScheduledAt(`${date}T${hour}:${e.target.value}`);
-                    }}
+                {dateTimeError && (
+                  <div
                     style={{
-                      width:'100%',
-                      padding:'0.875rem',
-                      border:'2px solid #e5e7eb',
-                      borderRadius:'10px',
-                      fontSize:'1rem',
-                      outline:'none',
-                      cursor:'pointer',
-                      background:'white',
-                      boxSizing:'border-box'
-                    }}>
-                    <option value="00">00</option>
-                    <option value="15">15</option>
-                    <option value="30">30</option>
-                    <option value="45">45</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{marginTop:'1rem'}}>
-                {scheduledAt ? (
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1rem',background:'#f0fdf4',borderRadius:'10px',border:'2px solid #86efac'}}>
-                    <div>
-                      <p style={{margin:0,fontSize:'0.875rem',color:'#166534',fontWeight:'600'}}>
-                        📅 Agendado para:
-                      </p>
-                      <p style={{margin:'0.25rem 0 0 0',fontSize:'1rem',color:'#15803d',fontWeight:'bold'}}>
-                        {new Date(scheduledAt).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })} às {new Date(scheduledAt).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setScheduledAt('')}
-                      style={{
-                        padding:'0.5rem 1rem',
-                        background:'#fee2e2',
-                        color:'#991b1b',
-                        border:'none',
-                        borderRadius:'8px',
-                        cursor:'pointer',
-                        fontSize:'0.875rem',
-                        fontWeight:'600'
-                      }}>
-                      ✕ Limpar
-                    </button>
+                      gridColumn: '1 / -1',
+                      padding: '0.75rem',
+                      background: '#fee2e2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '8px',
+                      color: '#dc2626',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                    }}
+                  >
+                    ⚠️ {dateTimeError}
                   </div>
-                ) : (
-                  <div style={{padding:'1rem',background:'#fef3c7',borderRadius:'10px',border:'2px solid #fbbf24'}}>
-                    <p style={{margin:0,fontSize:'0.875rem',color:'#92400e'}}>
-                      <strong>⚡ Sem agendamento:</strong> Publique imediatamente ou defina uma data
-                    </p>
+                )}
+                {scheduleDate && scheduleTime && !dateTimeError && (
+                  <div
+                    style={{
+                      gridColumn: '1 / -1',
+                      padding: '1rem',
+                      background: '#dbeafe',
+                      border: '1px solid #93c5fd',
+                      borderRadius: '8px',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                    }}
+                  >
+                    <span style={{ color: '#1e3a8a', fontWeight: '600', display: 'block' }}>
+                      ✓ Agendado para:{' '}
+                      <span style={{ color: '#1e3a8a', fontWeight: '700' }}>
+                        {new Date(combineDateAndTime(scheduleDate, scheduleTime)).toLocaleString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </span>
                   </div>
                 )}
               </div>
-            </div>
+            )}
 
-            <div style={{marginBottom:'2rem'}}>
-              <label style={{display:'block',marginBottom:'0.5rem',fontWeight:'600',color:'#374151'}}>
-                Plataforma *
-              </label>
-              <div style={{display:'flex',gap:'1rem'}}>
-                <label style={{
-                  flex:1,
-                  padding:'1rem',
-                  border:`3px solid ${platform === 'youtube' ? '#667eea' : '#e5e7eb'}`,
-                  borderRadius:'10px',
-                  background:platform === 'youtube' ? '#f0f4ff' : 'white',
-                  cursor:'pointer',
-                  display:'flex',
-                  alignItems:'center',
-                  justifyContent:'center',
-                  gap:'0.5rem',
-                  fontWeight:'600'
-                }}>
-                  <input 
-                    type="radio" 
-                    name="platform" 
-                    value="youtube" 
-                    checked={platform === 'youtube'}
-                    onChange={(e) => setPlatform(e.target.value)}
-                    style={{display:'none'}}
-                  />
-                  📺 YouTube
-                </label>
-                <label style={{
-                  flex:1,
-                  padding:'1rem',
-                  border:`3px solid ${platform === 'tiktok' ? '#667eea' : '#e5e7eb'}`,
-                  borderRadius:'10px',
-                  background:platform === 'tiktok' ? '#f0f4ff' : 'white',
-                  cursor:'pointer',
-                  display:'flex',
-                  alignItems:'center',
-                  justifyContent:'center',
-                  gap:'0.5rem',
-                  fontWeight:'600'
-                }}>
-                  <input 
-                    type="radio" 
-                    name="platform" 
-                    value="tiktok" 
-                    checked={platform === 'tiktok'}
-                    onChange={(e) => setPlatform(e.target.value)}
-                    style={{display:'none'}}
-                  />
-                  🎵 TikTok
-                </label>
-              </div>
-            </div>
-
-            <div style={{display:'flex',gap:'1rem'}}>
-              <button 
+            {/* Botões */}
+            <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem' }}>
+              <button
                 type="button"
                 onClick={() => router.push('/dashboard')}
-                style={{flex:1,padding:'1rem',border:'2px solid #e5e7eb',borderRadius:'10px',background:'white',color:'#374151',fontSize:'1rem',fontWeight:'bold',cursor:'pointer'}}>
+                style={{
+                  flex: 1,
+                  padding: '0.875rem',
+                  background: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  color: '#64748b',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f8fafc';
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading || !title || selectedPlatforms.length === 0 || !!dateTimeError}
                 style={{
-                  flex:1,
-                  padding:'1rem',
-                  border:'none',
-                  borderRadius:'10px',
-                  background:loading ? '#9ca3af' : 'linear-gradient(135deg,#667eea,#764ba2)',
-                  color:'white',
-                  fontSize:'1rem',
-                  fontWeight:'bold',
-                  cursor:loading ? 'not-allowed' : 'pointer'
-                }}>
-                {loading ? 'Salvando...' : '💾 Salvar Alterações'}
+                  flex: 1,
+                  padding: '0.875rem',
+                  background: isLoading || !title || selectedPlatforms.length === 0 || !!dateTimeError ? '#cbd5e1' : primaryPlatform?.color || '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isLoading || !title || selectedPlatforms.length === 0 || !!dateTimeError ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  boxShadow: isLoading || !title || selectedPlatforms.length === 0 || !!dateTimeError ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading && title && selectedPlatforms.length > 0 && !dateTimeError) {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 8px -1px rgba(0, 0, 0, 0.15)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading && title && selectedPlatforms.length > 0 && !dateTimeError) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                  }
+                }}
+              >
+                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

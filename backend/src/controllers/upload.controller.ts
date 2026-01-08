@@ -1,8 +1,9 @@
+import { Request, Response } from 'express';
 import { StorageService } from '../services/storage.service.js';
 import { VideoService } from '../services/video.service.js';
 
 export class UploadController {
-  static async uploadVideo(req, res) {
+  static async uploadVideo(req: Request, res: Response) {
     try {
       const file = req.file;
       
@@ -54,7 +55,7 @@ export class UploadController {
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro no upload:', error);
       res.status(500).json({
         success: false,
@@ -64,22 +65,22 @@ export class UploadController {
     }
   }
 
-  static async getVideoUrl(req, res) {
+  static async getVideoUrl(req: Request, res: Response) {
     try {
       const { key } = req.params;
       const url = await StorageService.getSignedUrl(key);
       res.json({ success: true, data: { url } });
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ success: false, error: 'Erro ao gerar URL do vídeo' });
     }
   }
 
-  static async deleteVideo(req, res) {
+  static async deleteVideo(req: Request, res: Response) {
     try {
       const { key } = req.params;
       await StorageService.deleteFile(key);
       res.json({ success: true, message: 'Vídeo deletado com sucesso' });
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ success: false, error: 'Erro ao deletar vídeo' });
     }
   }

@@ -1,29 +1,36 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
 import { AuthController } from './controllers/auth.controller';
+import { PostController } from './controllers/post.controller';
+import { UploadController } from './controllers/upload.controller';
+import { ConnectionController } from './controllers/connection.controller';
+import { SettingsController } from './controllers/settings.controller';
+import { WorkspaceController } from './controllers/workspace.controller';
 import { authMiddleware } from './middleware/auth.middleware';
 import { validate } from './middleware/validation.middleware';
 import { registerSchema, loginSchema } from './schemas/auth.schema';
+import { createPostSchema, updatePostSchema } from './schemas/post.schema';
 import { upload } from './middleware/upload.middleware';
-import { UploadController } from './controllers/upload.controller';
 import { StorageService } from './services/storage.service';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
 
+// Inicializar bucket do S3/MinIO
+StorageService.initBucket().catch(console.error);
+
 // Health check
-app.get('/health', (req, res) => { 
-  res.json({ 
-    status: 'ok', 
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -34,79 +41,95 @@ app.post('/api/auth/login', validate(loginSchema), AuthController.login);
 app.post('/api/auth/refresh', AuthController.refresh);
 app.get('/api/auth/me', authMiddleware, AuthController.me);
 
+// OAuth Google
+app.get('/api/auth/google', AuthController.googleAuth);
+app.get('/api/auth/google/callback', AuthController.googleCallback);
+
+// ==================== ROTAS DE WORKSPACES (PROTEGIDAS) ====================
+
+app.get('/api/workspaces', authMiddleware, WorkspaceController.list);
+app.get('/api/workspaces/default', authMiddleware, WorkspaceController.getDefault);
+app.get('/api/workspaces/:id', authMiddleware, WorkspaceController.getById);
+app.post('/api/workspaces', authMiddleware, WorkspaceController.create);
+app.put('/api/workspaces/:id', authMiddleware, WorkspaceController.update);
+app.delete('/api/workspaces/:id', authMiddleware, WorkspaceController.delete);
+
+// ==================== ROTAS DE CONEXÕES (PROTEGIDAS) ====================
+
+app.get('/api/connections', authMiddleware, ConnectionController.list);
+app.get('/api/connections/youtube/auth', authMiddleware, ConnectionController.youtubeAuth);
+app.get('/api/connections/youtube/callback', ConnectionController.youtubeCallback);
+app.delete('/api/connections/youtube', authMiddleware, ConnectionController.youtubeDisconnect);
+app.get('/api/connections/tiktok/auth', authMiddleware, ConnectionController.tiktokAuth);
+app.get('/api/connections/tiktok/callback', ConnectionController.tiktokCallback);
+app.delete('/api/connections/tiktok', authMiddleware, ConnectionController.tiktokDisconnect);
+app.get('/api/connections/instagram/auth', authMiddleware, ConnectionController.instagramAuth);
+app.get('/api/connections/instagram/callback', ConnectionController.instagramCallback);
+app.delete('/api/connections/instagram', authMiddleware, ConnectionController.instagramDisconnect);
+app.get('/api/connections/kawai/auth', authMiddleware, ConnectionController.kawaiAuth);
+app.get('/api/connections/kawai/callback', ConnectionController.kawaiCallback);
+app.delete('/api/connections/kawai', authMiddleware, ConnectionController.kawaiDisconnect);
+
+// ==================== ROTAS DE CONFIGURAÇÕES (PROTEGIDAS) ====================
+
+app.get('/api/settings/preferences', authMiddleware, SettingsController.getPreferences);
+app.patch('/api/settings/preferences', authMiddleware, SettingsController.updatePreferences);
+app.post('/api/settings/subscription', authMiddleware, SettingsController.updateSubscription);
+
+// ==================== ROTAS DE UPLOAD (PROTEGIDAS) ====================
+
+app.post(
+  '/api/upload/video',
+  authMiddleware,
+  upload.single('video'),
+  UploadController.uploadVideo
+);
+
+app.get('/api/upload/video/:key', authMiddleware, UploadController.getVideoUrl);
+
+app.delete('/api/upload/video/:key', authMiddleware, UploadController.deleteVideo);
+
 // ==================== ROTAS DE POSTS (PROTEGIDAS) ====================
 
-app.get('/api/posts', authMiddleware, async (req, res) => {
-  try {
-    const posts = await prisma.post.findMany({
-      where: { userId: req.user!.userId },
-      include: { 
-        user: { 
-          select: { name: true, email: true } 
-        } 
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    res.json({ success: true, data: { posts } });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-});
+app.get('/api/posts', authMiddleware, PostController.list);
+app.get('/api/posts/:id', authMiddleware, PostController.get);
+app.post('/api/posts', authMiddleware, validate(createPostSchema), PostController.create);
+app.put('/api/posts/:id', authMiddleware, validate(updatePostSchema), PostController.update);
+app.patch('/api/posts/:id', authMiddleware, validate(updatePostSchema), PostController.update);
+app.delete('/api/posts/:id', authMiddleware, PostController.delete);
+app.post('/api/posts/:id/publish/instagram', authMiddleware, PostController.publishToInstagram);
 
-app.post('/api/posts', authMiddleware, async (req, res) => {
-  try {
-    const { title, description, videoUrl, platform, scheduledAt } = req.body;
-    
-    const post = await prisma.post.create({
-      data: { 
-        userId: req.user!.userId,
-        title, 
-        description, 
-        videoUrl, 
-        platform, 
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null
-      }
-    });
-    
-    res.status(201).json({ success: true, data: { post } });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-});
-
-app.delete('/api/posts/:id', authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const post = await prisma.post.findUnique({ where: { id } });
-    
-    if (!post) {
-      return res.status(404).json({ success: false, error: 'Post não encontrado' });
-    }
-    
-    if (post.userId !== req.user!.userId) {
-      return res.status(403).json({ success: false, error: 'Não autorizado' });
-    }
-    
-    await prisma.post.delete({ where: { id } });
-    
-    res.json({ success: true, message: 'Post deletado com sucesso' });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-});
+// Error handlers
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`✅ Backend rodando em: http://localhost:${PORT}`);
   console.log(`\n📋 Endpoints disponíveis:`);
-  console.log(`   POST   /api/auth/register  - Cadastrar usuário`);
-  console.log(`   POST   /api/auth/login     - Login`);
-  console.log(`   POST   /api/auth/refresh   - Renovar token`);
-  console.log(`   GET    /api/auth/me        - Dados do usuário (protegida)`);
-  console.log(`   GET    /api/posts          - Listar posts (protegida)`);
-  console.log(`   POST   /api/posts          - Criar post (protegida)`);
-  console.log(`   DELETE /api/posts/:id      - Deletar post (protegida)`);
+  console.log(`   POST   /api/auth/register    - Cadastrar usuário`);
+  console.log(`   POST   /api/auth/login       - Login`);
+  console.log(`   POST   /api/auth/refresh     - Renovar token`);
+  console.log(`   GET    /api/auth/me          - Dados do usuário (protegida)`);
+  console.log(`   GET    /api/posts            - Listar posts (protegida)`);
+  console.log(`   GET    /api/posts/:id        - Buscar post (protegida)`);
+  console.log(`   POST   /api/posts            - Criar post (protegida)`);
+  console.log(`   PUT    /api/posts/:id        - Atualizar post (protegida)`);
+  console.log(`   PATCH  /api/posts/:id        - Atualizar post (protegida)`);
+  console.log(`   DELETE /api/posts/:id        - Deletar post (protegida)`);
+  console.log(`   POST   /api/upload/video     - Upload de vídeo (protegida)`);
+  console.log(`   GET    /api/connections      - Listar conexões (protegida)`);
+  console.log(`   GET    /api/connections/youtube/auth - Iniciar auth YouTube (protegida)`);
+  console.log(`   GET    /api/connections/youtube/callback - Callback YouTube`);
+  console.log(`   DELETE /api/connections/youtube - Desconectar YouTube (protegida)`);
+  console.log(`   GET    /api/connections/tiktok/auth - Iniciar auth TikTok (protegida)`);
+  console.log(`   GET    /api/connections/tiktok/callback - Callback TikTok`);
+  console.log(`   DELETE /api/connections/tiktok - Desconectar TikTok (protegida)`);
+  console.log(`   GET    /api/connections/instagram/auth - Iniciar auth Instagram (protegida)`);
+  console.log(`   GET    /api/connections/instagram/callback - Callback Instagram`);
+  console.log(`   DELETE /api/connections/instagram - Desconectar Instagram (protegida)`);
+  console.log(`   GET    /api/connections/kawai/auth - Iniciar auth Kawai (protegida)`);
+  console.log(`   GET    /api/connections/kawai/callback - Callback Kawai`);
+  console.log(`   DELETE /api/connections/kawai - Desconectar Kawai (protegida)`);
   console.log(`\n🔐 Autenticação JWT implementada com sucesso!`);
 });

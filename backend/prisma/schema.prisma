@@ -8,34 +8,77 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
+  id                String              @id @default(uuid())
+  email             String              @unique
+  password          String?             // Nullable para permitir OAuth sem senha
+  name              String?
+  provider          String?             // 'google', 'email', etc.
+  providerId        String?             @map("provider_id") // ID do provider (Google ID, etc.)
+  avatarUrl         String?             @map("avatar_url") // URL do avatar
+  emailVerified     Boolean             @default(false) @map("email_verified")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  posts             Post[]
+  platformConnections PlatformConnection[]
+  workspaces        Workspace[]
 
   @@map("users")
+}
+
+model Workspace {
+  id              String              @id @default(uuid())
+  userId          String
+  name            String
+  description     String?
+  color           String?             // Cor para identificação visual
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connections     PlatformConnection[]
+  posts           Post[]
+
+  @@map("workspaces")
 }
 
 model Post {
   id           String    @id @default(uuid())
   userId       String
+  workspaceId  String?   // Nullable para compatibilidade com posts antigos
   title        String
   description  String?
   videoUrl     String?
-  videoKey     String?
-  thumbnailUrl String?
-  thumbnailKey String?
   platform     String
   status       String    @default("pending")
   scheduledAt  DateTime?
-  metadata     Json?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metadata     Json?
+  thumbnailKey String?
+  thumbnailUrl String?
+  videoKey     String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace    Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 
   @@map("posts")
+}
+
+model PlatformConnection {
+  id              String   @id @default(uuid())
+  userId          String
+  workspaceId     String?  // Nullable para compatibilidade com conexões antigas
+  platform        String
+  accessToken     String
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+  platformUserId  String?
+  platformUsername String?
+  platformEmail   String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace       Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, workspaceId]) // Permite múltiplas contas da mesma plataforma em workspaces diferentes
+  @@map("platform_connections")
 }
