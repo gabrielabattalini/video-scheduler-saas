@@ -16,6 +16,8 @@ export interface AuthResponse {
   };
 }
 
+const canUseStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
 export const authService = {
   async register(email: string, password: string, name?: string) {
     const { data } = await api.post<AuthResponse>('/api/auth/register', {
@@ -23,10 +25,12 @@ export const authService = {
       password,
       name,
     });
-    
-    localStorage.setItem('accessToken', data.data.accessToken);
-    localStorage.setItem('refreshToken', data.data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
+
+    if (canUseStorage()) {
+      localStorage.setItem('accessToken', data.data.accessToken);
+      localStorage.setItem('refreshToken', data.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+    }
     
     return data.data;
   },
@@ -36,10 +40,12 @@ export const authService = {
       email,
       password,
     });
-    
-    localStorage.setItem('accessToken', data.data.accessToken);
-    localStorage.setItem('refreshToken', data.data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
+
+    if (canUseStorage()) {
+      localStorage.setItem('accessToken', data.data.accessToken);
+      localStorage.setItem('refreshToken', data.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+    }
     
     return data.data;
   },
@@ -50,18 +56,24 @@ export const authService = {
   },
 
   logout() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    if (canUseStorage()) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   },
 
   getUser(): User | null {
+    if (!canUseStorage()) return null;
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
   isAuthenticated(): boolean {
+    if (!canUseStorage()) return false;
     return !!localStorage.getItem('accessToken');
   },
 };
