@@ -1,10 +1,9 @@
 {
   "name": "backend",
-  "type": "module",
   "scripts": {
     "dev": "tsx src/main.ts",
     "build": "tsc",
-    "start": "node --experimental-specifier-resolution=node dist/main.js"
+    "start": "node dist/main.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.962.0",
