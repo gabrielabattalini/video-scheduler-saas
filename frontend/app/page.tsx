@@ -41,6 +41,8 @@ type LandingCopy = {
       supportDocs: string;
       supportContact: string;
       supportLogin: string;
+      supportPrivacy: string;
+      supportTerms: string;
     };
   };
 };
@@ -129,6 +131,8 @@ const enCopy: LandingCopy = {
       supportDocs: 'Documentation',
       supportContact: 'Contact',
       supportLogin: 'Login',
+      supportPrivacy: 'Privacy Policy',
+      supportTerms: 'Terms of Service',
     },
   },
 };
@@ -218,6 +222,8 @@ const copyByLang: Record<Language, LandingCopy> = {
         supportDocs: 'Documentação',
         supportContact: 'Contato',
         supportLogin: 'Login',
+        supportPrivacy: 'Politica de Privacidade',
+        supportTerms: 'Termos de Servico',
       },
     },
   },  en: enCopy,
@@ -305,6 +311,8 @@ const copyByLang: Record<Language, LandingCopy> = {
         supportDocs: 'Документация',
         supportContact: 'Контакт',
         supportLogin: 'Войти',
+        supportPrivacy: 'Privacy Policy',
+        supportTerms: 'Terms of Service',
       },
     },
   },  zh: {
@@ -391,6 +399,8 @@ const copyByLang: Record<Language, LandingCopy> = {
         supportDocs: '文档',
         supportContact: '联系',
         supportLogin: '登录',
+        supportPrivacy: 'Privacy Policy',
+        supportTerms: 'Terms of Service',
       },
     },
   },};
@@ -610,6 +620,16 @@ export default function LandingPage() {
                     {copy.footer.links.supportLogin}
                   </Link>
                 </li>
+                <li>
+                  <Link href="/privacy-policy" className="hover:text-white transition-colors">
+                    {copy.footer.links.supportPrivacy}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms-of-service" className="hover:text-white transition-colors">
+                    {copy.footer.links.supportTerms}
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -621,7 +641,6 @@ export default function LandingPage() {
     </div>
   );
 }
-
 
 
 

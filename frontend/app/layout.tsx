@@ -10,6 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <meta name="tiktok-developers-site-verification" content="ht4jPE0BITYtq2sboP2jmWtwwfjd4633" />
+      </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
