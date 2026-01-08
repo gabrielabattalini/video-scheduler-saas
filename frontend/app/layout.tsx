@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <head>
-        <meta name="tiktok-developers-site-verification" content="ht4jPE0BITYtq2sboP2jmWtwwfjd4633" />
+        <meta name="tiktok-developers-site-verification" content="uDsuiDVmLTF92IfHsyom8G85luTa84l7" />
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
