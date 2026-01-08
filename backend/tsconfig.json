@@ -1,4 +1,3 @@
-cat <<'EOF' > ~/video-scheduler-saas/backend/tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -7,6 +6,8 @@ cat <<'EOF' > ~/video-scheduler-saas/backend/tsconfig.json
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": false,
+    "noImplicitAny": false,
+    "useUnknownInCatchVariables": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -16,4 +17,3 @@ cat <<'EOF' > ~/video-scheduler-saas/backend/tsconfig.json
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
-EOF

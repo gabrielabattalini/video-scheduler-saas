@@ -11,7 +11,7 @@ export const createPostSchema = z.object({
   thumbnailKey: z.string().optional(),
   platforms: z.array(platformEnum).min(1, 'Selecione pelo menos uma plataforma'),
   scheduledAt: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const updatePostSchema = createPostSchema.partial();

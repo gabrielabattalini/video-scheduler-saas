@@ -62,7 +62,7 @@ export class KawaiOAuthService {
       throw new Error(`Erro ao trocar cÃ³digo por tokens: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     if (data.error) {
       throw new Error(data.error_description || data.error || 'Erro ao obter tokens do Kawai');
     }
@@ -91,7 +91,7 @@ export class KawaiOAuthService {
       throw new Error('Erro ao obter informaÃ§Ãµes do usuÃ¡rio do Kawai');
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
 
     return {
       id: data.id || data.user_id,

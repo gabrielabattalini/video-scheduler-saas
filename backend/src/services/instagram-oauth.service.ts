@@ -106,7 +106,7 @@ export class InstagramOAuthService {
       };
     }
 
-    const longLivedData = await longLivedResponse.json();
+    const longLivedData = (await longLivedResponse.json()) as any;
 
     return {
       access_token: longLivedData.access_token || shortLivedToken,
@@ -126,7 +126,7 @@ export class InstagramOAuthService {
         throw new Error(`Erro ao obter pÃ¡ginas do Facebook: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
 
       if (data.error) {
         throw new Error(data.error.message || 'Erro ao obter pÃ¡ginas do Facebook');
@@ -152,7 +152,7 @@ export class InstagramOAuthService {
         return null;
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
 
       if (data.error || !data.instagram_business_account) {
         return null;
@@ -172,7 +172,7 @@ export class InstagramOAuthService {
         };
       }
 
-      const igInfo = await igInfoResponse.json();
+      const igInfo = (await igInfoResponse.json()) as any;
 
       return {
         id: igAccount.id,
@@ -196,7 +196,7 @@ export class InstagramOAuthService {
         throw new Error('Erro ao obter informaÃ§Ãµes do usuÃ¡rio');
       }
 
-      const userData = await userResponse.json();
+      const userData = (await userResponse.json()) as any;
 
       if (userData.error) {
         throw new Error(userData.error.message || 'Erro ao obter informaÃ§Ãµes do usuÃ¡rio');

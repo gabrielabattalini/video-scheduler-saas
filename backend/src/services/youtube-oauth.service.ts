@@ -93,7 +93,7 @@ export class YouTubeOAuthService {
         throw new Error(`Erro ao obter informaÃ§Ãµes do canal do YouTube: ${youtubeResponse.status}`);
       }
 
-      const youtubeData = await youtubeResponse.json();
+      const youtubeData = (await youtubeResponse.json()) as any;
       
       if (youtubeData.error) {
         throw new Error(youtubeData.error.message || 'Erro ao obter informaÃ§Ãµes do canal');
@@ -115,7 +115,7 @@ export class YouTubeOAuthService {
         });
 
         if (userInfoResponse.ok) {
-          const userInfo = await userInfoResponse.json();
+          const userInfo = (await userInfoResponse.json()) as any;
           email = userInfo.email;
         }
       } catch (error) {
