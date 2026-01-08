@@ -1,4 +1,4 @@
-import { Providers } from '@/components/Providers';
+﻿import { Providers } from '@/components/Providers';
 import './globals.css';
 
 export const metadata = {
@@ -16,3 +16,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+
