@@ -37,6 +37,8 @@ export interface Translations {
     welcome: string;
     connectAccounts: string;
     connectAccountsDescription: string;
+    connectedAccounts: string;
+    noConnections: string;
     stats: string;
     recentPosts: string;
     noPosts: string;
@@ -142,6 +144,8 @@ const english: Translations = {
     welcome: "Welcome back!",
     connectAccounts: "Connect accounts",
     connectAccountsDescription: "Link your social profiles to start publishing.",
+    connectedAccounts: "connected account(s)",
+    noConnections: "No connections yet",
     stats: "Statistics",
     recentPosts: "Recent Posts",
     noPosts: "No posts found",
@@ -250,6 +254,8 @@ export const translations: Record<Language, Translations> = {
       welcome: "Bem-vindo de volta!",
       connectAccounts: "Conectar contas",
       connectAccountsDescription: "Vincule suas redes sociais para começar a publicar.",
+      connectedAccounts: "conta(s) conectada(s)",
+      noConnections: "Nenhuma conexão",
       stats: "EstatÃ­sticas",
       recentPosts: "Posts Recentes",
       noPosts: "Nenhum post encontrado",
@@ -355,6 +361,8 @@ export const translations: Record<Language, Translations> = {
       welcome: "Ð Ð°Ð´Ñ‹ Ð²Ð¸Ð´ÐµÑ‚ÑŒ ÑÐ½Ð¾Ð²Ð°!",
       connectAccounts: "Подключите аккаунты",
       connectAccountsDescription: "Свяжите свои соцсети, чтобы начать публиковать.",
+      connectedAccounts: "подключенных аккаунтов",
+      noConnections: "Нет подключенных аккаунтов",
       stats: "Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ°",
       recentPosts: "ÐÐµÐ´Ð°Ð²Ð½Ð¸Ðµ Ð¿Ð¾ÑÑ‚Ñ‹",
       noPosts: "ÐÐµÑ‚ Ð¿Ð¾ÑÑ‚Ð¾Ð²",
@@ -460,6 +468,8 @@ export const translations: Record<Language, Translations> = {
       welcome: "æ¬¢è¿Žå›žæ¥ï¼",
       connectAccounts: "连接账号",
       connectAccountsDescription: "绑定社交账号以开始发布。",
+      connectedAccounts: "已连接账号",
+      noConnections: "暂无连接",
       stats: "ç»Ÿè®¡",
       recentPosts: "æœ€æ–°å¸–å­",
       noPosts: "æ²¡æœ‰å¸–å­",
