@@ -171,6 +171,9 @@ export default function PrivacyPolicyPage() {
       </header>
 
       <main className="container mx-auto px-4 py-16">
+        <span className="sr-only">
+          tiktok-developers-site-verification=uDsuiDVmLTF92IfHsyom8G85luTa84l7
+        </span>
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
             <h1 className="text-4xl font-bold text-gray-900 mb-3">{copy.title}</h1>
