@@ -36,6 +36,124 @@ export function Navbar() {
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
   const [confirmData, setConfirmData] = useState<{ message: string; targetId: string | null } | null>(null);
 
+  useEffect(() => {
+    setUser(authService.getUser());
+  }, []);
+
+  const persistWorkspaceSelection = (workspace: Workspace | null) => {
+    if (workspace) {
+      localStorage.setItem('activeWorkspaceId', workspace.id);
+      localStorage.setItem('activeWorkspaceName', workspace.name);
+      if (workspace.color) {
+        localStorage.setItem('activeWorkspaceColor', workspace.color);
+      } else {
+        localStorage.removeItem('activeWorkspaceColor');
+      }
+      setActiveWorkspace({ id: workspace.id, name: workspace.name, color: workspace.color });
+      window.dispatchEvent(new Event('workspace-changed'));
+    } else {
+      localStorage.removeItem('activeWorkspaceId');
+      localStorage.removeItem('activeWorkspaceName');
+      localStorage.removeItem('activeWorkspaceColor');
+      setActiveWorkspace(null);
+      window.dispatchEvent(new Event('workspace-changed'));
+    }
+  };
+
+  useEffect(() => {
+    const checkConnections = async () => {
+      try {
+        if (!authService.isAuthenticated()) {
+          setIsLoading(false);
+          return;
+        }
+
+        const connections = await connectionsApi.list();
+        setHasConnections(connections.length > 0);
+      } catch (error) {
+        console.error('Erro ao verificar conexões:', error);
+        setHasConnections(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkConnections();
+  }, [pathname]);
+
+  useEffect(() => {
+    const fetchWorkspaces = async () => {
+      if (!authService.isAuthenticated()) return;
+      setIsLoadingWorkspaces(true);
+      try {
+        const list = await workspacesApi.list();
+        setWorkspaces(list);
+        const storedId = localStorage.getItem('activeWorkspaceId');
+        const storedWorkspace = storedId ? list.find((w) => w.id === storedId) : null;
+        const promptSeen = localStorage.getItem('workspacePromptSeen') === 'true';
+
+        if (storedWorkspace) {
+          persistWorkspaceSelection(storedWorkspace);
+          setWorkspaceModalSelection(storedWorkspace.id);
+          localStorage.setItem('workspacePromptSeen', 'true');
+        } else if (list.length > 0) {
+          setWorkspaceModalSelection(list[0].id);
+          if (!promptSeen) {
+            localStorage.setItem('workspacePromptSeen', 'true');
+            setWorkspaceModalOpen(true);
+          } else {
+            persistWorkspaceSelection(list[0]);
+          }
+        } else {
+          setWorkspaceModalSelection(null);
+          if (!promptSeen) {
+            localStorage.setItem('workspacePromptSeen', 'true');
+            setWorkspaceModalOpen(true);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar workspaces:', err);
+      } finally {
+        setIsLoadingWorkspaces(false);
+      }
+    };
+
+    fetchWorkspaces();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+
+  useEffect(() => {
+    const syncWorkspace = () => {
+      const id = localStorage.getItem('activeWorkspaceId');
+      const name = localStorage.getItem('activeWorkspaceName');
+      const color = localStorage.getItem('activeWorkspaceColor') || undefined;
+      setActiveWorkspace(id && name ? { id, name, color } : null);
+    };
+    syncWorkspace();
+    window.addEventListener('storage', syncWorkspace);
+    window.addEventListener('workspace-changed', syncWorkspace);
+    return () => {
+      window.removeEventListener('storage', syncWorkspace);
+      window.removeEventListener('workspace-changed', syncWorkspace);
+    };
+  }, []);
+
   const confirmAndSetWorkspace = (workspaceId: string | null, askConfirm = true) => {
     if (!workspaceId) return;
     const target = workspaces.find((w) => w.id === workspaceId);
