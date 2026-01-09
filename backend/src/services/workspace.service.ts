@@ -104,6 +104,14 @@ export class WorkspaceService {
     // Verificar se o workspace pertence ao usuário
     await this.getById(userId, workspaceId);
 
+    const workspaceCount = await prisma.workspace.count({
+      where: { userId },
+    });
+
+    if (workspaceCount <= 1) {
+      throw new Error('Nao e possivel deletar o ultimo workspace. Crie outro antes.');
+    }
+
     return await prisma.workspace.delete({
       where: { id: workspaceId },
     });

@@ -3,6 +3,7 @@ import { YouTubeOAuthService } from '../services/youtube-oauth.service';
 import { TikTokOAuthService } from '../services/tiktok-oauth.service';
 import { InstagramOAuthService } from '../services/instagram-oauth.service';
 import { KawaiOAuthService } from '../services/kawai-oauth.service';
+import { TwitterOAuthService } from '../services/twitter-oauth.service';
 import { WorkspaceService } from '../services/workspace.service';
 import { prisma } from '../lib/prisma';
 
@@ -235,6 +236,97 @@ export class ConnectionController {
    * GET /api/connections/instagram/auth
    * Inicia o fluxo de autenticaÃ§Ã£o do Instagram
    */
+  /**
+   * GET /api/connections/twitter/auth
+   * Inicia o fluxo de autenticacao do X
+   */
+  static async twitterAuth(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Nao autenticado',
+        });
+      }
+
+      const workspaceId = req.query.workspaceId as string | undefined;
+      let finalWorkspaceId = workspaceId;
+
+      if (!finalWorkspaceId) {
+        const defaultWorkspace = await WorkspaceService.getOrCreateDefault(userId);
+        finalWorkspaceId = defaultWorkspace.id;
+      } else {
+        await WorkspaceService.getById(userId, finalWorkspaceId);
+      }
+
+      const authUrl = TwitterOAuthService.getAuthUrl(userId, finalWorkspaceId);
+      res.json({ success: true, data: { authUrl } });
+    } catch (error: any) {
+      console.error('Erro ao iniciar autenticacao do X:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erro ao iniciar autenticacao do X',
+      });
+    }
+  }
+
+  /**
+   * GET /api/connections/twitter/callback
+   * Callback do OAuth do X
+   */
+  static async twitterCallback(req: Request, res: Response) {
+    try {
+      const { code, state, error } = req.query;
+
+      if (error) {
+        const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+        return res.redirect(
+          `${frontendUrl}/connections?error=${encodeURIComponent(error as string)}`,
+        );
+      }
+
+      if (!code || !state) {
+        const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+        return res.redirect(`${frontendUrl}/connections?error=missing_code`);
+      }
+
+      const { redirectUrl } = await TwitterOAuthService.authenticateWithTwitter(
+        code as string,
+        state as string,
+      );
+      res.redirect(redirectUrl);
+    } catch (error: any) {
+      console.error('Erro no callback do X:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'https://autoedito.com';
+      res.redirect(
+        `${frontendUrl}/connections?error=${encodeURIComponent(
+          error.message || 'Erro ao conectar com X',
+        )}`,
+      );
+    }
+  }
+
+  /**
+   * DELETE /api/connections/twitter
+   * Remove a conexao do X
+   */
+  static async twitterDisconnect(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Nao autenticado' });
+      }
+
+      const workspaceId = req.query.workspaceId as string | undefined;
+      await TwitterOAuthService.disconnect(userId, workspaceId);
+      res.json({ success: true, message: 'X desconectado com sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao desconectar X:', error);
+      res.status(500).json({ error: error.message || 'Erro ao desconectar X' });
+    }
+  }
+
   static async instagramAuth(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;

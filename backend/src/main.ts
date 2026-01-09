@@ -63,6 +63,9 @@ app.delete('/api/connections/youtube', authMiddleware, ConnectionController.yout
 app.get('/api/connections/tiktok/auth', authMiddleware, ConnectionController.tiktokAuth);
 app.get('/api/connections/tiktok/callback', ConnectionController.tiktokCallback);
 app.delete('/api/connections/tiktok', authMiddleware, ConnectionController.tiktokDisconnect);
+app.get('/api/connections/twitter/auth', authMiddleware, ConnectionController.twitterAuth);
+app.get('/api/connections/twitter/callback', ConnectionController.twitterCallback);
+app.delete('/api/connections/twitter', authMiddleware, ConnectionController.twitterDisconnect);
 app.get('/api/connections/instagram/auth', authMiddleware, ConnectionController.instagramAuth);
 app.get('/api/connections/instagram/callback', ConnectionController.instagramCallback);
 app.delete('/api/connections/instagram', authMiddleware, ConnectionController.instagramDisconnect);
@@ -125,6 +128,9 @@ app.listen(PORT, () => {
   console.log(`   GET    /api/connections/tiktok/auth - Iniciar auth TikTok (protegida)`);
   console.log(`   GET    /api/connections/tiktok/callback - Callback TikTok`);
   console.log(`   DELETE /api/connections/tiktok - Desconectar TikTok (protegida)`);
+  console.log(`   GET    /api/connections/twitter/auth - Iniciar auth X (protegida)`);
+  console.log(`   GET    /api/connections/twitter/callback - Callback X`);
+  console.log(`   DELETE /api/connections/twitter - Desconectar X (protegida)`);
   console.log(`   GET    /api/connections/instagram/auth - Iniciar auth Instagram (protegida)`);
   console.log(`   GET    /api/connections/instagram/callback - Callback Instagram`);
   console.log(`   DELETE /api/connections/instagram - Desconectar Instagram (protegida)`);

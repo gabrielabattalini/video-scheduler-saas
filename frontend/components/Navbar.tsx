@@ -86,7 +86,21 @@ export function Navbar() {
       if (!authService.isAuthenticated()) return;
       setIsLoadingWorkspaces(true);
       try {
-        const list = await workspacesApi.list();
+        let list = await workspacesApi.list();
+        let createdDefault = false;
+
+        if (list.length === 0) {
+          try {
+            const created = await workspacesApi.getDefault();
+            if (created) {
+              list = [created];
+              createdDefault = true;
+            }
+          } catch (error) {
+            console.error('Erro ao criar workspace padrao:', error);
+          }
+        }
+
         setWorkspaces(list);
         const storedId = localStorage.getItem('activeWorkspaceId');
         const storedWorkspace = storedId ? list.find((w) => w.id === storedId) : null;
@@ -98,11 +112,12 @@ export function Navbar() {
           localStorage.setItem('workspacePromptSeen', 'true');
         } else if (list.length > 0) {
           setWorkspaceModalSelection(list[0].id);
-          if (!promptSeen) {
+          if (!promptSeen && !createdDefault) {
             localStorage.setItem('workspacePromptSeen', 'true');
             setWorkspaceModalOpen(true);
           } else {
             persistWorkspaceSelection(list[0]);
+            localStorage.setItem('workspacePromptSeen', 'true');
           }
         } else {
           setWorkspaceModalSelection(null);
@@ -635,6 +650,30 @@ export function Navbar() {
             </div>
           ) : (
             <div style={{ marginBottom: '1rem', color: '#475569' }}>{t.workspaces.noWorkspaces}</div>
+          )}
+
+          {workspaces.length === 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => {
+                  setWorkspaceModalOpen(false);
+                  localStorage.setItem('workspacePromptSeen', 'true');
+                  router.push('/connections');
+                }}
+                style={{
+                  padding: '0.9rem 1.4rem',
+                  background: '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  minWidth: '180px',
+                }}
+              >
+                {t.workspaces.create}
+              </button>
+            </div>
           )}
 
           {workspaces.length > 0 && (

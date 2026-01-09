@@ -53,6 +53,8 @@ class ConnectionsApi {
         youtube: 'youtube',
         tiktok: 'tiktok',
         instagram: 'instagram',
+        twitter: 'twitter',
+        kawai: 'kawai',
       };
 
       const route = platformRoutes[platform.toLowerCase()];
@@ -100,6 +102,8 @@ class ConnectionsApi {
       youtube: 'youtube',
       tiktok: 'tiktok',
       instagram: 'instagram',
+      twitter: 'twitter',
+      kawai: 'kawai',
     };
 
     const route = platformRoutes[platform.toLowerCase()];
@@ -121,4 +125,3 @@ class ConnectionsApi {
 }
 
 export const connectionsApi = new ConnectionsApi();
-

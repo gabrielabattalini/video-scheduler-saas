@@ -259,6 +259,15 @@ export default function ConnectionsPage() {
   };
 
   const handleDeleteWorkspace = async (workspace: Workspace) => {
+    if (workspaces.length <= 1) {
+      setNotification({
+        type: 'error',
+        message: 'Crie outro workspace antes de deletar este.',
+      });
+      setTimeout(() => setNotification(null), 4000);
+      return;
+    }
+
     const connectionCount = workspace._count?.connections || 0;
     const message = connectionCount > 0
       ? `Tem certeza que deseja deletar o workspace "${workspace.name}"?\n\nIsso irÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ desconectar ${connectionCount} conta${connectionCount > 1 ? 's' : ''} vinculada${connectionCount > 1 ? 's' : ''} a este workspace.\n\nEsta aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode ser desfeita!`
@@ -401,6 +410,7 @@ export default function ConnectionsPage() {
   };
 
   const workspaceColors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#a8edea'];
+  const disableDeleteWorkspace = workspaces.length <= 1;
 
   if (loading) {
     return (
@@ -732,27 +742,31 @@ export default function ConnectionsPage() {
                         e.stopPropagation();
                         handleDeleteWorkspace(workspace);
                       }}
+                      disabled={disableDeleteWorkspace}
                       style={{
                         padding: '0.375rem',
                         background: 'transparent',
                         border: '1px solid #fee2e2',
                         borderRadius: '6px',
-                        cursor: 'pointer',
+                        cursor: disableDeleteWorkspace ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#dc2626',
+                        opacity: disableDeleteWorkspace ? 0.5 : 1,
                         transition: 'all 0.2s',
                       }}
                       onMouseEnter={(e) => {
+                        if (disableDeleteWorkspace) return;
                         e.currentTarget.style.background = '#fef2f2';
                         e.currentTarget.style.borderColor = '#fca5a5';
                       }}
                       onMouseLeave={(e) => {
+                        if (disableDeleteWorkspace) return;
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.borderColor = '#fee2e2';
                       }}
-                      title={t.common.delete}
+                      title={disableDeleteWorkspace ? 'Crie outro workspace para deletar este.' : t.common.delete}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="3 6 5 6 21 6" />
