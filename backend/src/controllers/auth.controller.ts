@@ -173,4 +173,74 @@ export class AuthController {
       });
     }
   }
+
+  static async updateProfile(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const { name } = req.body as { name?: string };
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
+      }
+
+      const updated = await AuthService.updateProfile(userId, { name });
+
+      res.json({
+        success: true,
+        message: 'Perfil atualizado com sucesso',
+        data: { user: updated },
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erro ao atualizar perfil',
+      });
+    }
+  }
+
+  static async changePassword(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
+      }
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, error: 'Senhas não fornecidas' });
+      }
+
+      await AuthService.changePassword(userId, currentPassword, newPassword);
+
+      res.json({
+        success: true,
+        message: 'Senha atualizada com sucesso',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erro ao alterar senha',
+      });
+    }
+  }
+
+  static async deleteAccount(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
+      }
+
+      await AuthService.deleteAccount(userId);
+
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Erro ao excluir conta',
+      });
+    }
+  }
 }

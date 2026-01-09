@@ -76,4 +76,21 @@ export const authService = {
     if (!canUseStorage()) return false;
     return !!localStorage.getItem('accessToken');
   },
+
+  async updateProfile(name: string) {
+    const { data } = await api.patch<{ success: boolean; data: { user: User } }>('/api/auth/profile', { name });
+    if (canUseStorage()) {
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+    }
+    return data.data.user;
+  },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    await api.post('/api/auth/change-password', { currentPassword, newPassword });
+  },
+
+  async deleteAccount() {
+    await api.delete('/api/auth/me');
+    this.logout();
+  },
 };

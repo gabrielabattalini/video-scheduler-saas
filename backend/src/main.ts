@@ -40,6 +40,9 @@ app.post('/api/auth/register', validate(registerSchema), AuthController.register
 app.post('/api/auth/login', validate(loginSchema), AuthController.login);
 app.post('/api/auth/refresh', AuthController.refresh);
 app.get('/api/auth/me', authMiddleware, AuthController.me);
+app.patch('/api/auth/profile', authMiddleware, AuthController.updateProfile);
+app.post('/api/auth/change-password', authMiddleware, AuthController.changePassword);
+app.delete('/api/auth/me', authMiddleware, AuthController.deleteAccount);
 
 // OAuth Google
 app.get('/api/auth/google', AuthController.googleAuth);

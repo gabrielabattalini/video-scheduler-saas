@@ -416,15 +416,29 @@ export function Navbar() {
           </div>
 
           {/* User Greeting */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.5rem 1rem',
-            borderRadius: '12px',
-            background: 'rgba(102, 126, 234, 0.05)',
-            border: '1px solid rgba(102, 126, 234, 0.1)',
-          }}>
+          <div
+            onClick={() => router.push('/account')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '12px',
+              background: 'rgba(102, 126, 234, 0.05)',
+              border: '1px solid rgba(102, 126, 234, 0.1)',
+              cursor: 'pointer',
+              transition: 'transform 0.15s ease, box-shadow 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(102,126,234,0.18)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+            title={t.account?.title || 'Account'}
+          >
             <div style={{
               width: '36px',
               height: '36px',

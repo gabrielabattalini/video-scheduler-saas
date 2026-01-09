@@ -141,4 +141,50 @@ export class AuthService {
 
     return { accessToken: newAccessToken };
   }
+
+  static async updateProfile(userId: string, data: { name?: string }) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return user;
+  }
+
+  static async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.password) {
+      throw new Error('Usuário não encontrado ou sem senha definida');
+    }
+
+    const isValid = await this.comparePassword(currentPassword, user.password);
+    if (!isValid) {
+      throw new Error('Senha atual incorreta');
+    }
+
+    const hashed = await this.hashPassword(newPassword);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+  }
+
+  static async deleteAccount(userId: string) {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+  }
 }
