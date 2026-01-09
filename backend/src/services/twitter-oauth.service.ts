@@ -4,7 +4,9 @@ import { prisma } from '../lib/prisma';
 const X_CLIENT_ID = process.env.X_CLIENT_ID;
 const X_CLIENT_SECRET = process.env.X_CLIENT_SECRET;
 const X_REDIRECT_URI =
-  process.env.X_REDIRECT_URI || 'https://autoedito.com/api/connections/twitter/callback';
+  process.env.X_REDIRECT_URI ||
+  process.env.TWITTER_REDIRECT_URI ||
+  'https://autoedito.com/api/connections/x/callback';
 const X_SCOPES =
   process.env.X_SCOPES || 'tweet.read tweet.write users.read offline.access';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://autoedito.com';

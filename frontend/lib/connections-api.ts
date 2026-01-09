@@ -54,6 +54,7 @@ class ConnectionsApi {
         tiktok: 'tiktok',
         instagram: 'instagram',
         twitter: 'twitter',
+        x: 'x',
         kawai: 'kawai',
       };
 
@@ -103,6 +104,7 @@ class ConnectionsApi {
       tiktok: 'tiktok',
       instagram: 'instagram',
       twitter: 'twitter',
+      x: 'x',
       kawai: 'kawai',
     };
 
