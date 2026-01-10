@@ -81,6 +81,7 @@ export default function NewPostPage() {
   const [connectedPlatforms, setConnectedPlatforms] = useState<Platform[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(true);
   const [activeWorkspace, setActiveWorkspace] = useState<{ id: string; name: string } | null>(null);
+  const activeWorkspaceId = activeWorkspace?.id;
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
 
@@ -119,7 +120,7 @@ export default function NewPostPage() {
       if (!authService.isAuthenticated()) return;
       try {
         setIsLoadingConnections(true);
-        const workspaceId = typeof window !== 'undefined' ? localStorage.getItem('activeWorkspaceId') : null;
+        const workspaceId = activeWorkspaceId || (typeof window !== 'undefined' ? localStorage.getItem('activeWorkspaceId') : null);
         if (!workspaceId) {
           setConnectedPlatforms([]);
           setSelectedPlatforms([]);
@@ -148,7 +149,7 @@ export default function NewPostPage() {
     };
 
     loadConnections();
-  }, []);
+  }, [activeWorkspaceId]);
 
   const togglePlatform = (platform: Platform) => {
     setSelectedPlatforms((prev) => {
