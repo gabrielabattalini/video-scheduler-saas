@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { jwtConfig } from '../config/jwt.config';
 import type { RegisterInput, LoginInput } from '../schemas/auth.schema';
+import { PlanService } from './plan.service';
 
 export class AuthService {
   static async hashPassword(password: string): Promise<string> {
@@ -78,6 +79,8 @@ export class AuthService {
     const accessToken = this.generateAccessToken(user.id, user.email);
     const refreshToken = this.generateRefreshToken(user.id);
 
+    await PlanService.ensureSupportForUser(user.id, user.email);
+
     return {
       user,
       accessToken,
@@ -107,6 +110,8 @@ export class AuthService {
 
     const accessToken = this.generateAccessToken(user.id, user.email);
     const refreshToken = this.generateRefreshToken(user.id);
+
+    await PlanService.ensureSupportForUser(user.id, user.email);
 
     return {
       user: {

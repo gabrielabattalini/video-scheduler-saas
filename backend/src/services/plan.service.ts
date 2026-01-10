@@ -89,6 +89,8 @@ const defaultPlans: PlanDefinition[] = [
   },
 ];
 
+const defaultSupportEmails = ['gabrielabattalini@gmail.com'];
+
 export class PlanService {
   static async ensureDefaults() {
     for (const plan of defaultPlans) {
@@ -146,5 +148,27 @@ export class PlanService {
     }
 
     return PlanService.setUserSubscription(user.id, 'support', 'active');
+  }
+
+  static async ensureSupportForUser(userId: string, email: string) {
+    const allowList = (process.env.SUPPORT_AUTO_EMAILS || '')
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+    const effectiveAllowList = allowList.length ? allowList : defaultSupportEmails;
+
+    if (!effectiveAllowList.includes(email.toLowerCase())) {
+      return null;
+    }
+
+    const existing = await prisma.userSubscription.findUnique({
+      where: { userId },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return PlanService.setUserSubscription(userId, 'support', 'active');
   }
 }

@@ -1,6 +1,7 @@
 ﻿import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../lib/prisma';
 import { AuthService } from './auth.service';
+import { PlanService } from './plan.service';
 
 // Inicializar cliente OAuth2 apenas se as credenciais estiverem disponÃ­veis
 let client: OAuth2Client | null = null;
@@ -164,6 +165,8 @@ export class GoogleOAuthService {
       const accessToken = AuthService.generateAccessToken(user.id, user.email);
       const refreshToken = AuthService.generateRefreshToken(user.id);
 
+      await PlanService.ensureSupportForUser(user.id, user.email);
+
       console.log('AutenticaÃ§Ã£o com Google concluÃ­da com sucesso');
 
       return {
@@ -184,4 +187,5 @@ export class GoogleOAuthService {
     }
   }
 }
+
 
