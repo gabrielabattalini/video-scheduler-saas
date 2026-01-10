@@ -38,10 +38,10 @@ export default function VideoUploader({ onUploadComplete, onError }: Props) {
       return;
     }
 
-    // Validate file size (2GB max)
-    const maxSize = 2 * 1024 * 1024 * 1024;
+    // Validate file size (6GB max)
+    const maxSize = 6 * 1024 * 1024 * 1024;
     if (file.size > maxSize) {
-      onError?.('Arquivo muito grande. Tamanho máximo: 2GB');
+      onError?.('Arquivo muito grande. Tamanho máximo: 6GB');
       return;
     }
 
@@ -128,7 +128,7 @@ export default function VideoUploader({ onUploadComplete, onError }: Props) {
             Selecionar Vídeo
           </button>
           <p style={{ fontSize: '0.875rem', color: '#666', margin: 0 }}>
-            Formatos: MP4, MPEG, MOV, AVI, WebM (máx. 2GB)
+            Formatos: MP4, MPEG, MOV, AVI, WebM (máx. 6GB)
           </p>
         </>
       ) : (
