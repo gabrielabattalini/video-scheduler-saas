@@ -10,19 +10,19 @@ interface PostCardProps {
 }
 
 const platformData: Record<string, { icon: string; color: string; label: string }> = {
-  youtube: { icon: 'YT', color: '#FF0000', label: 'YouTube' },
-  tiktok: { icon: 'TT', color: '#000000', label: 'TikTok' },
-  instagram: { icon: 'IG', color: '#E4405F', label: 'Instagram' },
-  facebook: { icon: 'FB', color: '#1877F2', label: 'Facebook' },
-  twitter: { icon: 'X', color: '#000000', label: 'X' },
-  kawai: { icon: 'KW', color: '#FF69B4', label: 'Kawai' },
+  youtube: { icon: '▶', color: '#FF0000', label: 'YouTube' },
+  tiktok: { icon: '♪', color: '#000000', label: 'TikTok' },
+  instagram: { icon: '◎', color: '#E4405F', label: 'Instagram' },
+  facebook: { icon: 'f', color: '#1877F2', label: 'Facebook' },
+  twitter: { icon: 'Ⓧ', color: '#000000', label: 'X' },
+  kawai: { icon: '✿', color: '#FF69B4', label: 'Kawai' },
 };
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-  pending: { label: 'Pendente', bg: '#fef3c7', text: '#92400e', icon: 'PND' },
-  scheduled: { label: 'Agendado', bg: '#dbeafe', text: '#1e40af', icon: 'SCH' },
-  published: { label: 'Publicado', bg: '#d1fae5', text: '#065f46', icon: 'PUB' },
-  draft: { label: 'Rascunho', bg: '#f3f4f6', text: '#374151', icon: 'DRF' },
+  pending: { label: 'Pendente', bg: '#fef3c7', text: '#92400e', icon: '…' },
+  scheduled: { label: 'Agendado', bg: '#dbeafe', text: '#1e40af', icon: '⏰' },
+  published: { label: 'Publicado', bg: '#d1fae5', text: '#065f46', icon: '✓' },
+  draft: { label: 'Rascunho', bg: '#f3f4f6', text: '#374151', icon: '✎' },
 };
 
 export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
