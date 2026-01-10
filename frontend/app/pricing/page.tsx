@@ -86,10 +86,6 @@ const pageCopy: Record<Language, PageCopy> = {
         a: 'Você receberá uma notificação e poderá fazer upgrade para continuar usando o serviço sem interrupções.',
       },
       {
-        q: 'Há período de teste?',
-        a: 'Sim! Todos os planos incluem um período de teste gratuito de 7 dias. É necessário cadastrar o cartão para iniciar o teste.',
-      },
-      {
         q: 'Quais métodos de pagamento são aceitos?',
         a: 'Aceitamos cartão de crédito, débito e PIX. Todos os pagamentos são processados de forma segura.',
       },
