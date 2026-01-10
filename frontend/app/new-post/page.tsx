@@ -8,6 +8,7 @@ import { authService } from '@/lib/auth';
 import { Navbar } from '@/components/Navbar';
 import { generateTimeSlots, combineDateAndTime } from '@/lib/date-utils';
 import { connectionsApi } from '@/lib/connections-api';
+import VideoUploader from '@/components/VideoUploader';
 
 const YouTubeIcon = ({ size = 40 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="#FF0000">
@@ -298,10 +299,10 @@ export default function NewPostPage() {
 
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#334155' }}>
-                {t.newPost.postContent}
+                {t.newPost.descriptionLabel}
               </label>
               <textarea
-                placeholder={t.newPost.postContent}
+                placeholder={t.newPost.descriptionPlaceholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
@@ -314,6 +315,34 @@ export default function NewPostPage() {
                   fontFamily: 'inherit',
                 }}
               />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#334155' }}>
+                {t.newPost.videoLinkLabel}
+              </label>
+              <input
+                type="url"
+                placeholder={t.newPost.videoLinkPlaceholder}
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                }}
+              />
+              <div style={{ marginTop: '1rem' }}>
+                <div style={{ marginBottom: '0.75rem', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {t.newPost.uploadVideoLabel}
+                </div>
+                <VideoUploader
+                  onUploadComplete={(data) => setVideoUrl(data.videoUrl)}
+                  onError={(message) => setError(message)}
+                />
+              </div>
             </div>
 
             <div>

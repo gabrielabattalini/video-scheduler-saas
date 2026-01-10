@@ -75,6 +75,11 @@ export interface Translations {
     selectPlatform: string;
     workspaceLabel: string;
     workspacePlaceholder: string;
+    descriptionLabel: string;
+    descriptionPlaceholder: string;
+    videoLinkLabel: string;
+    videoLinkPlaceholder: string;
+    uploadVideoLabel: string;
     content: string;
     schedule: string;
     publishNow: string;
@@ -215,6 +220,11 @@ const english: Translations = {
     selectPlatform: "Select platform",
     workspaceLabel: "Workspace",
     workspacePlaceholder: "Current workspace",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Describe your post",
+    videoLinkLabel: "Video link",
+    videoLinkPlaceholder: "Paste a video URL (optional)",
+    uploadVideoLabel: "Upload video",
     content: "Content",
     schedule: "Schedule",
     publishNow: "Publish Now",
@@ -358,6 +368,11 @@ export const translations: Record<Language, Translations> = {
       selectPlatform: "Selecionar plataforma",
       workspaceLabel: "Workspace",
       workspacePlaceholder: "Workspace atual",
+      descriptionLabel: \"Descricao\",
+      descriptionPlaceholder: \"Descreva o post\",
+      videoLinkLabel: \"Link do video\",
+      videoLinkPlaceholder: \"Cole o link do video (opcional)\",
+      uploadVideoLabel: \"Enviar video\",
       content: "Conteúdo",
       schedule: "Agendar",
       publishNow: "Publicar agora",
