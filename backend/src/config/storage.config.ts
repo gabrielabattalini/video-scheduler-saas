@@ -12,7 +12,7 @@ export const s3Client = new S3Client({
 
 export const storageConfig = {
   bucket: process.env.AWS_S3_BUCKET || 'videos',
-  maxFileSize: 500 * 1024 * 1024, // 500MB
+  maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB
   allowedMimeTypes: [
     'video/mp4',
     'video/mpeg',
