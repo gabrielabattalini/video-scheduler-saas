@@ -59,7 +59,7 @@ const defaultPlans: PlanDefinition[] = [
     description: 'Para equipes e agências',
     priceCents: 14990,
     currency: 'BRL',
-    postsPerMonth: 60,
+    postsPerMonth: 120,
     platformsLimit: 6,
     workspacesLimit: null,
     includesScheduling: true,
