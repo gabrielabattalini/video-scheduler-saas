@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const platformEnum = z.enum(['youtube', 'tiktok', 'instagram']);
+const platformEnum = z.enum(['youtube', 'tiktok', 'instagram', 'facebook', 'twitter', 'kawai']);
 
 export const createPostSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório').max(200, 'Título muito longo'),
@@ -12,6 +12,7 @@ export const createPostSchema = z.object({
   platforms: z.array(platformEnum).min(1, 'Selecione pelo menos uma plataforma'),
   scheduledAt: z.string().optional(),
   metadata: z.record(z.string(), z.any()).optional(),
+  workspaceId: z.string().optional(),
 });
 
 export const updatePostSchema = createPostSchema.partial();

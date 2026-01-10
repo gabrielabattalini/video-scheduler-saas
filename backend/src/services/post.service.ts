@@ -9,6 +9,9 @@ export class PostService {
         user: {
           select: { name: true, email: true },
         },
+        workspace: {
+          select: { id: true, name: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -26,6 +29,9 @@ export class PostService {
       include: {
         user: {
           select: { name: true, email: true },
+        },
+        workspace: {
+          select: { id: true, name: true },
         },
       },
     });
@@ -86,12 +92,18 @@ export class PostService {
       metadata: data.metadata || null,
       status: data.scheduledAt ? 'scheduled' : 'pending',
     };
+    if (data.workspaceId) {
+      postData.workspaceId = data.workspaceId;
+    }
 
     const post = await prisma.post.create({
       data: postData,
       include: {
         user: {
           select: { name: true, email: true },
+        },
+        workspace: {
+          select: { id: true, name: true },
         },
       },
     });
@@ -136,6 +148,7 @@ export class PostService {
       updateData.status = data.scheduledAt ? 'scheduled' : 'pending';
     }
     if (data.metadata !== undefined) updateData.metadata = data.metadata || null;
+    if (data.workspaceId !== undefined) updateData.workspaceId = data.workspaceId || null;
 
     const updatedPost = await prisma.post.update({
       where: { id },
@@ -143,6 +156,9 @@ export class PostService {
       include: {
         user: {
           select: { name: true, email: true },
+        },
+        workspace: {
+          select: { id: true, name: true },
         },
       },
     });
