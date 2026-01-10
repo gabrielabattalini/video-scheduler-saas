@@ -1,6 +1,7 @@
 'use client';
 
 import { Post } from '@/lib/posts-api';
+import type { ReactNode } from 'react';
 import { formatDate, formatDateTime } from '@/lib/date-utils';
 
 interface PostCardProps {
@@ -61,9 +62,19 @@ const platformData: Record<string, { Icon: () => JSX.Element; color: string; lab
   kawai: { Icon: KawaiIcon, color: '#FF69B4', label: 'Kawai' },
 };
 
-const statusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
+const statusConfig: Record<string, { label: string; bg: string; text: string; icon: ReactNode }> = {
   pending: { label: 'Pendente', bg: '#fef3c7', text: '#92400e', icon: '…' },
-  scheduled: { label: 'Agendado', bg: '#dbeafe', text: '#1e40af', icon: '⏰' },
+  scheduled: {
+    label: 'Agendado',
+    bg: '#dbeafe',
+    text: '#1e40af',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 3" />
+      </svg>
+    ),
+  },
   published: { label: 'Publicado', bg: '#d1fae5', text: '#065f46', icon: '✓' },
   draft: { label: 'Rascunho', bg: '#f3f4f6', text: '#374151', icon: '✎' },
 };
@@ -208,7 +219,7 @@ export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
                   letterSpacing: '0.02em',
                 }}
               >
-                WS
+                W
               </span>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#0f172a' }}>{workspaceName}</span>
             </div>
