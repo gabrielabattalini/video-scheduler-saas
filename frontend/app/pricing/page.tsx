@@ -39,6 +39,8 @@ const navCopy: Record<Language, NavCopy> = {
   ru: { home: 'Главная', pricing: 'Цены', login: 'Войти', start: 'Начать бесплатно' },
   zh: { home: '首页', pricing: '定价', login: '登录', start: '免费开始' },
 };
+const getNavCopy = (language: Language) => navCopy[language] || baseNavCopy;
+
 const basePageCopy: PageCopy = {
   heroTitle: 'Plans and Pricing',
   heroSubtitle: 'Choose the perfect plan for your needs',
@@ -147,6 +149,8 @@ const pageCopy: Record<Language, PageCopy> = {
     ],
   },
 };
+const getPageCopy = (language: Language) => pageCopy[language] || basePageCopy;
+
 const plansByLang: Record<Language, Plan[]> = {
   pt: [
     {
@@ -406,6 +410,8 @@ export default function PricingPage() {
     </div>
   );
 }
+
+
 
 
 
