@@ -113,6 +113,19 @@ export interface Translations {
     deleteCta: string;
     deleteSuccess: string;
   };
+  payments: {
+    title: string;
+    description: string;
+    mercadoTitle: string;
+    mercadoSubtitle: string;
+    mercadoCta: string;
+    stripeTitle: string;
+    stripeSubtitle: string;
+    stripeCta: string;
+    methodsTitle: string;
+    methods: string[];
+    note: string;
+  };
   landing: {
     heroTitle: string;
     heroHighlight: string;
@@ -237,6 +250,19 @@ const english: Translations = {
     deleteWarning: "This action permanently removes your account, workspaces, posts and connections.",
     deleteCta: "Delete my account",
     deleteSuccess: "Account deleted successfully.",
+  },
+  payments: {
+    title: "Payments",
+    description: "Choose your preferred payment provider to continue.",
+    mercadoTitle: "Mercado Pago",
+    mercadoSubtitle: "Best for Brazil with PIX, boleto and local cards.",
+    mercadoCta: "Pay with Mercado Pago",
+    stripeTitle: "Stripe",
+    stripeSubtitle: "Ideal for international cards and subscriptions.",
+    stripeCta: "Pay with Stripe",
+    methodsTitle: "Accepted methods",
+    methods: ["Credit card", "Debit card", "PIX", "Bank slip (boleto)", "International card"],
+    note: "You'll be redirected to a secure checkout. Availability depends on your region.",
   },
   landing: {
     heroTitle: "Schedule and publish videos",
@@ -365,6 +391,19 @@ export const translations: Record<Language, Translations> = {
       deleteWarning: "Essa ação remove sua conta, workspaces, posts e conexões de forma permanente.",
       deleteCta: "Excluir minha conta",
       deleteSuccess: "Conta excluída com sucesso.",
+    },
+    payments: {
+      title: "Pagamentos",
+      description: "Escolha o provedor de pagamento para continuar.",
+      mercadoTitle: "Mercado Pago",
+      mercadoSubtitle: "Melhor para o Brasil com PIX, boleto e cartões locais.",
+      mercadoCta: "Pagar com Mercado Pago",
+      stripeTitle: "Stripe",
+      stripeSubtitle: "Ideal para cartões internacionais e assinaturas.",
+      stripeCta: "Pagar com Stripe",
+      methodsTitle: "Métodos aceitos",
+      methods: ["Cartão de crédito", "Cartão de débito", "PIX", "Boleto", "Cartão internacional"],
+      note: "Você será redirecionado para um checkout seguro. A disponibilidade varia por região.",
     },
     landing: {
       heroTitle: "Agende e publique vídeos",
