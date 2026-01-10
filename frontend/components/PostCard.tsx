@@ -171,7 +171,8 @@ export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
               </span>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#0f172a' }}>{workspaceName}</span>
             </div>
-          {/* Título */}
+          </div>
+          {/* Titulo */}
           <h3
             style={{
               fontSize: '1.375rem',
