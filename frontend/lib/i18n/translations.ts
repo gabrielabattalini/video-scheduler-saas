@@ -80,6 +80,8 @@ export interface Translations {
     videoLinkLabel: string;
     videoLinkPlaceholder: string;
     uploadVideoLabel: string;
+    scheduleTimeInvalid: string;
+    noTimesAvailable: string;
     content: string;
     schedule: string;
     publishNow: string;
@@ -225,6 +227,8 @@ const english: Translations = {
     videoLinkLabel: "Video link",
     videoLinkPlaceholder: "Paste a video URL (optional)",
     uploadVideoLabel: "Upload video",
+    scheduleTimeInvalid: "Select a time in the future.",
+    noTimesAvailable: "No available times today",
     content: "Content",
     schedule: "Schedule",
     publishNow: "Publish Now",
@@ -373,6 +377,8 @@ export const translations: Record<Language, Translations> = {
       videoLinkLabel: "Link do video",
       videoLinkPlaceholder: "Cole o link do video (opcional)",
       uploadVideoLabel: "Enviar video",
+      scheduleTimeInvalid: "Escolha um horario futuro.",
+      noTimesAvailable: "Sem horarios disponiveis hoje",
       content: "Conteúdo",
       schedule: "Agendar",
       publishNow: "Publicar agora",

@@ -85,6 +85,19 @@ export default function NewPostPage() {
   const activeWorkspaceId = activeWorkspace?.id;
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
+  const availableTimeSlots = useMemo(() => {
+    if (!scheduleDate) return timeSlots;
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    if (scheduleDate !== todayString) {
+      return timeSlots;
+    }
+    const nowMinutes = today.getHours() * 60 + today.getMinutes();
+    return timeSlots.filter((time) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes > nowMinutes;
+    });
+  }, [scheduleDate, timeSlots]);
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -99,6 +112,17 @@ export default function NewPostPage() {
     const day = String(today.getDate()).padStart(2, '0');
     setScheduleDate(`${year}-${month}-${day}`);
   }, []);
+
+  useEffect(() => {
+    if (publishOption !== 'scheduled') return;
+    if (availableTimeSlots.length === 0) {
+      setScheduleTime('');
+      return;
+    }
+    if (!availableTimeSlots.includes(scheduleTime)) {
+      setScheduleTime(availableTimeSlots[0]);
+    }
+  }, [availableTimeSlots, publishOption, scheduleTime]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -173,6 +197,10 @@ export default function NewPostPage() {
       setError(t.newPost.selectPlatform);
       return;
     }
+    if (publishOption === 'scheduled' && !scheduleTime) {
+      setError(t.newPost.noTimesAvailable);
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -180,8 +208,15 @@ export default function NewPostPage() {
       if (publishOption === 'immediate') {
         scheduledAt = new Date().toISOString();
       } else if (publishOption === 'scheduled' && scheduleDate && scheduleTime) {
+        const selectedDate = new Date(combineDateAndTime(scheduleDate, scheduleTime));
+        if (selectedDate <= new Date()) {
+          setError(t.newPost.scheduleTimeInvalid);
+          return;
+        }
         scheduledAt = combineDateAndTime(scheduleDate, scheduleTime);
       }
+
+      const workspaceId = activeWorkspaceId || (typeof window !== 'undefined' ? localStorage.getItem('activeWorkspaceId') : null);
 
       await addPost({
         title,
@@ -189,6 +224,7 @@ export default function NewPostPage() {
         videoUrl: videoUrl || undefined,
         platforms: selectedPlatforms,
         scheduledAt,
+        workspaceId: workspaceId || undefined,
       });
 
       router.push('/dashboard');
@@ -530,6 +566,7 @@ export default function NewPostPage() {
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
                     required
+                    disabled={availableTimeSlots.length === 0}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -540,7 +577,10 @@ export default function NewPostPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    {timeSlots.map((time) => (
+                    {availableTimeSlots.length === 0 ? (
+                      <option value="">{t.newPost.noTimesAvailable}</option>
+                    ) : null}
+                    {availableTimeSlots.map((time) => (
                       <option key={time} value={time}>
                         {time}
                       </option>
