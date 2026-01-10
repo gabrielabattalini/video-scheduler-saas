@@ -75,12 +75,29 @@ export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
                       gap: '0.5rem',
                       padding: '0.375rem 0.875rem',
                       borderRadius: '20px',
-                      background: `${platform.color}15`,
-                      border: `1px solid ${platform.color}30`,
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.08)',
                     }}
                   >
-                    <span style={{ fontSize: '1.125rem' }}>{platform.icon}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: platform.color }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '999px',
+                        background: platform.color,
+                        color: '#ffffff',
+                        fontSize: '0.7rem',
+                        fontWeight: '700',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {platform.icon}
+                    </span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#0f172a' }}>
                       {platform.label}
                     </span>
                   </div>
@@ -95,12 +112,29 @@ export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
                 gap: '0.375rem',
                 padding: '0.375rem 0.875rem',
                 borderRadius: '20px',
-                background: status.bg,
-                border: `1px solid ${status.text}30`,
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.08)',
               }}
             >
-              <span style={{ fontSize: '0.875rem' }}>{status.icon}</span>
-              <span style={{ fontSize: '0.75rem', fontWeight: '600', color: status.text, textTransform: 'capitalize' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '999px',
+                  background: status.bg,
+                  color: status.text,
+                  fontSize: '0.65rem',
+                  fontWeight: '700',
+                  border: `1px solid ${status.text}40`,
+                }}
+              >
+                {status.icon}
+              </span>
+              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#0f172a', textTransform: 'capitalize' }}>
                 {status.label}
               </span>
             </div>
@@ -112,16 +146,31 @@ export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
                 gap: '0.4rem',
                 padding: '0.375rem 0.85rem',
                 borderRadius: '20px',
-                background: '#eef2ff',
-                border: '1px solid #c7d2fe',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.08)',
               }}
               title={workspaceName}
             >
-              <span style={{ fontSize: '0.9rem' }}>🏷️</span>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4338ca' }}>{workspaceName}</span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '999px',
+                  background: '#6366f1',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                WS
+              </span>
+              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#0f172a' }}>{workspaceName}</span>
             </div>
-          </div>
-
           {/* Título */}
           <h3
             style={{
