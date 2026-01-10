@@ -28,17 +28,17 @@ type Plan = {
   description: string;
   features: string[];
   cta: string;
+  ctaLink?: string;
   popular: boolean;
 };
 
 const baseNavCopy: NavCopy = { home: 'Home', pricing: 'Pricing', login: 'Sign in', start: 'Start free' };
 const navCopy: Record<Language, NavCopy> = {
-  pt: { home: 'InÃ­cio', pricing: 'PreÃ§os', login: 'Entrar', start: 'ComeÃ§ar grÃ¡tis' },
+  pt: { home: 'Início', pricing: 'Preços', login: 'Entrar', start: 'Começar grátis' },
   en: baseNavCopy,
-  ru: { home: 'Ð“Ð»Ð°Ð²Ð½Ð°Ñ', pricing: 'Ð¦ÐµÐ½Ñ‹', login: 'Ð’Ð¾Ð¹Ñ‚Ð¸', start: 'ÐÐ°Ñ‡Ð°Ñ‚ÑŒ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾' },
-  zh: { home: 'é¦–é¡µ', pricing: 'å®šä»·', login: 'ç™»å½•', start: 'å…è´¹å¼€å§‹' },
+  ru: { home: 'Главная', pricing: 'Цены', login: 'Войти', start: 'Начать бесплатно' },
+  zh: { home: '首页', pricing: '定价', login: '登录', start: '免费开始' },
 };
-
 const basePageCopy: PageCopy = {
   heroTitle: 'Plans and Pricing',
   heroSubtitle: 'Choose the perfect plan for your needs',
@@ -57,7 +57,7 @@ const basePageCopy: PageCopy = {
     },
     {
       q: 'Is there a trial period?',
-      a: 'Yes! All plans include a 14-day free trial. No credit card required.',
+      a: 'Yes! All plans include a 7-day free trial. A card is required to start the trial.',
     },
     {
       q: 'Which payment methods are accepted?',
@@ -68,89 +68,85 @@ const basePageCopy: PageCopy = {
 
 const pageCopy: Record<Language, PageCopy> = {
   pt: {
-    heroTitle: 'Planos e PreÃ§os',
+    heroTitle: 'Planos e Preços',
     heroSubtitle: 'Escolha o plano perfeito para suas necessidades',
     faqTitle: 'Perguntas Frequentes',
-    ctaTitle: 'Pronto para comeÃ§ar?',
-    ctaSubtitle: 'Junte-se a milhares de criadores que jÃ¡ estÃ£o usando Autoedito',
-    ctaButton: 'Criar conta grÃ¡tis',
+    ctaTitle: 'Pronto para começar?',
+    ctaSubtitle: 'Junte-se a milhares de criadores que já estão usando Autoedito',
+    ctaButton: 'Criar conta grátis',
     faq: [
       {
         q: 'Posso mudar de plano a qualquer momento?',
-        a: 'Sim! VocÃª pode fazer upgrade ou downgrade do seu plano quando quiser. As alteraÃ§Ãµes valem no prÃ³ximo ciclo de cobranÃ§a.',
+        a: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações valem no próximo ciclo de cobrança.',
       },
       {
         q: 'O que acontece se eu exceder o limite do plano?',
-        a: 'VocÃª receberÃ¡ uma notificaÃ§Ã£o e poderÃ¡ fazer upgrade para continuar usando o serviÃ§o sem interrupÃ§Ãµes.',
+        a: 'Você receberá uma notificação e poderá fazer upgrade para continuar usando o serviço sem interrupções.',
       },
       {
-        q: 'HÃ¡ perÃ­odo de teste?',
-        a: 'Sim! Todos os planos incluem um perÃ­odo de teste gratuito de 14 dias. NÃ£o Ã© necessÃ¡rio cartÃ£o de crÃ©dito.',
+        q: 'Há período de teste?',
+        a: 'Sim! Todos os planos incluem um período de teste gratuito de 7 dias. É necessário cadastrar o cartão para iniciar o teste.',
       },
       {
-        q: 'Quais mÃ©todos de pagamento sÃ£o aceitos?',
-        a: 'Aceitamos cartÃ£o de crÃ©dito, dÃ©bito e PIX. Todos os pagamentos sÃ£o processados de forma segura.',
+        q: 'Quais métodos de pagamento são aceitos?',
+        a: 'Aceitamos cartão de crédito, débito e PIX. Todos os pagamentos são processados de forma segura.',
       },
     ],
   },
   en: basePageCopy,
   ru: {
-    heroTitle: 'ÐŸÐ»Ð°Ð½Ñ‹ Ð¸ Ñ†ÐµÐ½Ñ‹',
-    heroSubtitle: 'Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ð¿Ð¾Ð´Ñ…Ð¾Ð´ÑÑ‰Ð¸Ð¹ Ð¿Ð»Ð°Ð½ Ð´Ð»Ñ Ð²Ð°ÑˆÐ¸Ñ… Ð·Ð°Ð´Ð°Ñ‡',
-    faqTitle: 'Ð§Ð°ÑÑ‚Ñ‹Ðµ Ð²Ð¾Ð¿Ñ€Ð¾ÑÑ‹',
-    ctaTitle: 'Ð“Ð¾Ñ‚Ð¾Ð²Ñ‹ Ð½Ð°Ñ‡Ð°Ñ‚ÑŒ?',
-    ctaSubtitle: 'ÐŸÑ€Ð¸ÑÐ¾ÐµÐ´Ð¸Ð½ÑÐ¹Ñ‚ÐµÑÑŒ Ðº Ñ‚Ñ‹ÑÑÑ‡Ð°Ð¼ Ð°Ð²Ñ‚Ð¾Ñ€Ð¾Ð², ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ ÑƒÐ¶Ðµ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÑŽÑ‚ Autoedito',
-    ctaButton: 'Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾',
+    heroTitle: 'Планы и цены',
+    heroSubtitle: 'Выберите подходящий план для ваших задач',
+    faqTitle: 'Частые вопросы',
+    ctaTitle: 'Готовы начать?',
+    ctaSubtitle: 'Присоединяйтесь к тысячам авторов, которые уже используют Autoedito',
+    ctaButton: 'Создать аккаунт бесплатно',
     faq: [
       {
-        q: 'ÐœÐ¾Ð³Ñƒ Ð»Ð¸ Ñ Ð¼ÐµÐ½ÑÑ‚ÑŒ Ð¿Ð»Ð°Ð½ Ð² Ð»ÑŽÐ±Ð¾Ðµ Ð²Ñ€ÐµÐ¼Ñ?',
-        a: 'Ð”Ð°! ÐœÐ¾Ð¶Ð½Ð¾ Ð¿Ð¾Ð²Ñ‹ÑÐ¸Ñ‚ÑŒ Ð¸Ð»Ð¸ Ð¿Ð¾Ð½Ð¸Ð·Ð¸Ñ‚ÑŒ Ð¿Ð»Ð°Ð½ ÐºÐ¾Ð³Ð´Ð° ÑƒÐ³Ð¾Ð´Ð½Ð¾. Ð˜Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ Ð²ÑÑ‚ÑƒÐ¿Ð°ÑŽÑ‚ Ð² ÑÐ¸Ð»Ñƒ Ð² ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¼ Ð±Ð¸Ð»Ð»Ð¸Ð½Ð³Ðµ.',
+        q: 'Можно ли менять план в любое время?',
+        a: 'Да! Вы можете сделать апгрейд или даунгрейд в любое время. Изменения вступают в силу в следующем расчетном периоде.',
       },
       {
-        q: 'Ð§Ñ‚Ð¾ ÐµÑÐ»Ð¸ Ñ Ð¿Ñ€ÐµÐ²Ñ‹ÑˆÑƒ Ð»Ð¸Ð¼Ð¸Ñ‚ Ð¿Ð»Ð°Ð½Ð°?',
-        a: 'ÐœÑ‹ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð¸Ð¼ Ð²Ð°Ñ, Ð¸ Ð²Ñ‹ ÑÐ¼Ð¾Ð¶ÐµÑ‚Ðµ Ð¿ÐµÑ€ÐµÐ¹Ñ‚Ð¸ Ð½Ð° Ð±Ð¾Ð»ÐµÐµ Ð²Ñ‹ÑÐ¾ÐºÐ¸Ð¹ Ð¿Ð»Ð°Ð½, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ñ€Ð¾Ð´Ð¾Ð»Ð¶Ð¸Ñ‚ÑŒ Ð±ÐµÐ· Ð¿ÐµÑ€ÐµÑ€Ñ‹Ð²Ð¾Ð².',
+        q: 'Что происходит, если я превышаю лимит плана?',
+        a: 'Вы получите уведомление и сможете обновить план, чтобы продолжить пользоваться сервисом без перерывов.',
       },
       {
-        q: 'Ð•ÑÑ‚ÑŒ Ð»Ð¸ Ð¿Ñ€Ð¾Ð±Ð½Ñ‹Ð¹ Ð¿ÐµÑ€Ð¸Ð¾Ð´?',
-        a: 'Ð”Ð°! Ð’ÑÐµ Ð¿Ð»Ð°Ð½Ñ‹ Ð²ÐºÐ»ÑŽÑ‡Ð°ÑŽÑ‚ 14 Ð´Ð½ÐµÐ¹ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾Ð³Ð¾ Ñ‚ÐµÑÑ‚Ð°. Ð‘Ð°Ð½ÐºÐ¾Ð²ÑÐºÐ°Ñ ÐºÐ°Ñ€Ñ‚Ð° Ð½Ðµ Ñ‚Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ.',
+        q: 'Есть ли пробный период?',
+        a: 'Да! Все планы включают 7-дневный бесплатный пробный период. Для начала требуется привязать карту.',
       },
       {
-        q: 'ÐšÐ°ÐºÐ¸Ðµ ÑÐ¿Ð¾ÑÐ¾Ð±Ñ‹ Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ñ‹?',
-        a: 'ÐŸÑ€Ð¸Ð½Ð¸Ð¼Ð°ÐµÐ¼ ÐºÑ€ÐµÐ´Ð¸Ñ‚Ð½Ñ‹Ðµ/Ð´ÐµÐ±ÐµÑ‚Ð¾Ð²Ñ‹Ðµ ÐºÐ°Ñ€Ñ‚Ñ‹ Ð¸ PIX. Ð’ÑÐµ Ð¿Ð»Ð°Ñ‚ÐµÐ¶Ð¸ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÑŽÑ‚ÑÑ Ð±ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾.',
+        q: 'Какие методы оплаты принимаются?',
+        a: 'Мы принимаем кредитные/дебетовые карты и PIX. Все платежи обрабатываются безопасно.',
       },
     ],
   },
   zh: {
-    heroTitle: 'æ–¹æ¡ˆä¸Žå®šä»·',
-    heroSubtitle: 'é€‰æ‹©æœ€é€‚åˆä½ çš„æ–¹æ¡ˆ',
-    faqTitle: 'å¸¸è§é—®é¢˜',
-    ctaTitle: 'å‡†å¤‡å¼€å§‹äº†å—ï¼Ÿ',
-    ctaSubtitle: 'åŠ å…¥å·²ç»åœ¨ä½¿ç”¨ Autoedito çš„æ•°åƒåˆ›ä½œè€…',
-    ctaButton: 'å…è´¹åˆ›å»ºè´¦å·',
+    heroTitle: '套餐与定价',
+    heroSubtitle: '选择最适合你的方案',
+    faqTitle: '常见问题',
+    ctaTitle: '准备开始了吗？',
+    ctaSubtitle: '加入已经在使用 Autoedito 的成千上万创作者',
+    ctaButton: '免费创建账户',
     faq: [
       {
-        q: 'æˆ‘å¯ä»¥éšæ—¶æ›´æ¢æ–¹æ¡ˆå—ï¼Ÿ',
-        a: 'å¯ä»¥ï¼éšæ—¶å‡çº§æˆ–é™çº§ï¼Œå˜æ›´ä¼šåœ¨ä¸‹ä¸€ä¸ªè´¦å•å‘¨æœŸç”Ÿæ•ˆã€‚',
+        q: '我可以随时更换套餐吗？',
+        a: '可以！你可以随时升级或降级。变更将在下一个计费周期生效。',
       },
       {
-        q: 'å¦‚æžœè¶…è¿‡æ–¹æ¡ˆé™åˆ¶ä¼šæ€Žæ ·ï¼Ÿ',
-        a: 'æˆ‘ä»¬ä¼šé€šçŸ¥ä½ ï¼Œä½ å¯ä»¥å‡çº§æ–¹æ¡ˆä»¥ä¸ä¸­æ–­åœ°ç»§ç»­ä½¿ç”¨ã€‚',
+        q: '如果我超出套餐限制会怎样？',
+        a: '我们会通知你，你可以升级以继续使用服务而不中断。',
       },
       {
-        q: 'æœ‰æ²¡æœ‰è¯•ç”¨æœŸï¼Ÿ',
-        a: 'æœ‰ï¼æ‰€æœ‰æ–¹æ¡ˆéƒ½åŒ…å« 14 å¤©å…è´¹è¯•ç”¨ï¼Œæ— éœ€ä¿¡ç”¨å¡ã€‚',
+        q: '有试用期吗？',
+        a: '有！所有套餐都包含 7 天免费试用。开始试用需要绑定卡片。',
       },
       {
-        q: 'æ”¯æŒå“ªäº›æ”¯ä»˜æ–¹å¼ï¼Ÿ',
-        a: 'æ”¯æŒä¿¡ç”¨å¡ã€å€Ÿè®°å¡å’Œ PIXï¼Œæ‰€æœ‰æ”¯ä»˜éƒ½ä¼šå®‰å…¨å¤„ç†ã€‚',
+        q: '支持哪些支付方式？',
+        a: '支持信用卡/借记卡和 PIX。所有付款都安全处理。',
       },
     ],
   },
 };
-
-const getNavCopy = (language: Language) => navCopy[language] || baseNavCopy;
-const getPageCopy = (language: Language) => pageCopy[language] || basePageCopy;
-
 const plansByLang: Record<Language, Plan[]> = {
   pt: [
     {
@@ -176,8 +172,9 @@ const plansByLang: Record<Language, Plan[]> = {
       price: 'R$ 149',
       period: '/mês',
       description: 'Para equipes e agências',
-      features: ['Até 90 posts por mês', 'Múltiplos usuários', 'Workspaces ilimitados', 'Suporte dedicado', 'Treinamento da equipe'],
+      features: ['Até 90 posts por mês', 'Múltiplos usuários', 'Workspaces ilimitados', 'Suporte dedicado'],
       cta: 'Falar com vendas',
+      ctaLink: 'https://wa.me/5511959110386?text=Gostaria%20de%20saber%20sobre%20o%20plano%20Empresarial',
       popular: false,
     },
   ],
@@ -205,8 +202,9 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '$149',
       period: '/mo',
       description: 'For teams and agencies',
-      features: ['Up to 90 posts per month', 'Multiple users', 'Unlimited workspaces', 'Dedicated support', 'Team training'],
+      features: ['Up to 90 posts per month', 'Multiple users', 'Unlimited workspaces', 'Dedicated support'],
       cta: 'Talk to sales',
+      ctaLink: 'https://wa.me/5511959110386?text=Gostaria%20de%20saber%20sobre%20o%20plano%20Empresarial',
       popular: false,
     },
   ],
@@ -234,8 +232,9 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '149 ₽',
       period: '/мес',
       description: 'Для команд и агентств',
-      features: ['До 90 постов в месяц', 'Несколько пользователей', 'Безлимитные рабочие пространства', 'Выделенная поддержка', 'Обучение команды'],
+      features: ['До 90 постов в месяц', 'Несколько пользователей', 'Безлимитные рабочие пространства', 'Выделенная поддержка'],
       cta: 'Связаться с отделом продаж',
+      ctaLink: 'https://wa.me/5511959110386?text=Gostaria%20de%20saber%20sobre%20o%20plano%20Empresarial',
       popular: false,
     },
   ],
@@ -263,8 +262,9 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '¥149',
       period: '/月',
       description: '适合团队和机构',
-      features: ['每月最多 90 条帖子', '多用户', '无限工作区', '专属支持', '团队培训'],
+      features: ['每月最多 90 条帖子', '多用户', '无限工作区', '专属支持'],
       cta: '联系销售',
+      ctaLink: 'https://wa.me/5511959110386?text=Gostaria%20de%20saber%20sobre%20o%20plano%20Empresarial',
       popular: false,
     },
   ],
@@ -356,7 +356,9 @@ export default function PricingPage() {
                   ))}
                 </ul>
                 <Link
-                  href={authService.isAuthenticated() ? '/dashboard' : '/login'}
+                  href={plan.ctaLink || (authService.isAuthenticated() ? '/dashboard' : '/login')}
+                  target={plan.ctaLink ? '_blank' : undefined}
+                  rel={plan.ctaLink ? 'noopener noreferrer' : undefined}
                   className={`block w-full text-center py-3 px-6 rounded-lg font-semibold transition-all ${
                     plan.popular
                       ? 'bg-primary-500 text-white hover:bg-primary-600'
@@ -404,5 +406,6 @@ export default function PricingPage() {
     </div>
   );
 }
+
 
 

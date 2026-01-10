@@ -21,6 +21,7 @@ model User {
   posts             Post[]
   platformConnections PlatformConnection[]
   workspaces        Workspace[]
+  subscription      UserSubscription?
 
   @@map("users")
 }
@@ -81,4 +82,44 @@ model PlatformConnection {
 
   @@unique([userId, platform, workspaceId]) // Permite múltiplas contas da mesma plataforma em workspaces diferentes
   @@map("platform_connections")
+}
+
+model SubscriptionPlan {
+  id                 String   @id @default(uuid())
+  code               String   @unique
+  name               String
+  description        String?
+  priceCents         Int
+  currency           String   @default("BRL")
+  postsPerMonth      Int?
+  platformsLimit     Int?
+  workspacesLimit    Int?
+  includesScheduling Boolean  @default(true)
+  includesAnalytics  Boolean  @default(false)
+  includesVideoEditor Boolean @default(false)
+  includesCustomApi  Boolean  @default(false)
+  isUnlimited        Boolean  @default(false)
+  trialDays          Int      @default(7)
+  requiresCard       Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  subscriptions      UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                 String           @id @default(uuid())
+  userId             String
+  planId             String
+  status             String           @default("active")
+  currentPeriodStart DateTime         @default(now())
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan               SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("user_subscriptions")
 }

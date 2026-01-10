@@ -7,12 +7,14 @@ import { UploadController } from './controllers/upload.controller';
 import { ConnectionController } from './controllers/connection.controller';
 import { SettingsController } from './controllers/settings.controller';
 import { WorkspaceController } from './controllers/workspace.controller';
+import { PlanController } from './controllers/plan.controller';
 import { authMiddleware } from './middleware/auth.middleware';
 import { validate } from './middleware/validation.middleware';
 import { registerSchema, loginSchema } from './schemas/auth.schema';
 import { createPostSchema, updatePostSchema } from './schemas/post.schema';
 import { upload } from './middleware/upload.middleware';
 import { StorageService } from './services/storage.service';
+import { PlanService } from './services/plan.service';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 dotenv.config();
@@ -24,6 +26,7 @@ app.use(express.json());
 
 // Inicializar bucket do S3/MinIO
 StorageService.initBucket().catch(console.error);
+PlanService.ensureDefaults().catch(console.error);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -84,6 +87,11 @@ app.delete('/api/connections/kawai', authMiddleware, ConnectionController.kawaiD
 app.get('/api/settings/preferences', authMiddleware, SettingsController.getPreferences);
 app.patch('/api/settings/preferences', authMiddleware, SettingsController.updatePreferences);
 app.post('/api/settings/subscription', authMiddleware, SettingsController.updateSubscription);
+
+// ==================== ROTAS DE PLANOS ====================
+
+app.get('/api/plans', PlanController.list);
+app.post('/api/plans/grant-support', authMiddleware, PlanController.grantSupport);
 
 // ==================== ROTAS DE UPLOAD (PROTEGIDAS) ====================
 

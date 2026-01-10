@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import { PlanService } from '../services/plan.service';
 
 export class SettingsController {
   /**
@@ -97,16 +98,18 @@ export class SettingsController {
       }
 
       const { plan, status } = req.body;
+      const targetPlan = plan || 'free';
 
-      // Por enquanto apenas retorna sucesso
-      // Pode ser expandido para salvar em uma tabela de Subscription
+      const subscription = await PlanService.setUserSubscription(
+        userId,
+        targetPlan,
+        status || 'active'
+      );
+
       res.json({
         success: true,
         message: 'Assinatura atualizada com sucesso',
-        data: {
-          plan: plan || 'free',
-          status: status || 'active',
-        },
+        data: subscription,
       });
     } catch (error: any) {
       console.error('Erro ao atualizar assinatura:', error);
