@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authService } from '@/lib/auth';
 import { connectionsApi } from '@/lib/connections-api';
@@ -35,6 +35,7 @@ export function Navbar() {
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [confirmData, setConfirmData] = useState<{ message: string; targetId: string | null } | null>(null);
 
   useEffect(() => {
@@ -169,6 +170,18 @@ export function Navbar() {
       window.removeEventListener('workspace-changed', syncWorkspace);
     };
   }, []);
+
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handleClick = (event: MouseEvent) => {
+      if (!userMenuRef.current) return;
+      if (!userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showUserMenu]);
 
   const confirmAndSetWorkspace = (workspaceId: string | null, askConfirm = true) => {
     if (!workspaceId) return;
@@ -418,8 +431,8 @@ export function Navbar() {
 
           {/* User Greeting */}
           <div
+            ref={userMenuRef}
             style={{ position: 'relative' }}
-            onMouseLeave={() => setShowUserMenu(false)}
           >
             <div
               onClick={() => setShowUserMenu((prev) => !prev)}

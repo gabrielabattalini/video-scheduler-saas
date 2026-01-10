@@ -73,6 +73,8 @@ export interface Translations {
     title: string;
     createPost: string;
     selectPlatform: string;
+    workspaceLabel: string;
+    workspacePlaceholder: string;
     content: string;
     schedule: string;
     publishNow: string;
@@ -211,6 +213,8 @@ const english: Translations = {
     title: "New Post",
     createPost: "Create Post",
     selectPlatform: "Select platform",
+    workspaceLabel: "Workspace",
+    workspacePlaceholder: "Current workspace",
     content: "Content",
     schedule: "Schedule",
     publishNow: "Publish Now",
@@ -352,6 +356,8 @@ export const translations: Record<Language, Translations> = {
       title: "Novo Post",
       createPost: "Criar Post",
       selectPlatform: "Selecionar plataforma",
+      workspaceLabel: "Workspace",
+      workspacePlaceholder: "Workspace atual",
       content: "Conteúdo",
       schedule: "Agendar",
       publishNow: "Publicar agora",

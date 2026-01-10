@@ -80,6 +80,7 @@ export default function NewPostPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [connectedPlatforms, setConnectedPlatforms] = useState<Platform[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(true);
+  const [activeWorkspace, setActiveWorkspace] = useState<{ id: string; name: string } | null>(null);
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
 
@@ -95,6 +96,22 @@ export default function NewPostPage() {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     setScheduleDate(`${year}-${month}-${day}`);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const readWorkspace = () => {
+      const id = localStorage.getItem('activeWorkspaceId');
+      const name = localStorage.getItem('activeWorkspaceName');
+      if (id && name) {
+        setActiveWorkspace({ id, name });
+      } else {
+        setActiveWorkspace(null);
+      }
+    };
+    readWorkspace();
+    window.addEventListener('storage', readWorkspace);
+    return () => window.removeEventListener('storage', readWorkspace);
   }, []);
 
   useEffect(() => {
@@ -253,6 +270,27 @@ export default function NewPostPage() {
                   border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   fontSize: '1rem',
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#334155' }}>
+                {t.newPost.workspaceLabel}
+              </label>
+              <input
+                type="text"
+                value={activeWorkspace?.name || t.newPost.workspacePlaceholder}
+                readOnly
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  cursor: 'default',
                 }}
               />
             </div>
