@@ -10,24 +10,31 @@ interface PostCardProps {
 }
 
 const platformData: Record<string, { icon: string; color: string; label: string }> = {
-  youtube: { icon: '?Y"?', color: '#FF0000', label: 'YouTube' },
-  tiktok: { icon: '?YZ?', color: '#000000', label: 'TikTok' },
-  instagram: { icon: '?Y"?', color: '#E4405F', label: 'Instagram' },
+  youtube: { icon: 'YT', color: '#FF0000', label: 'YouTube' },
+  tiktok: { icon: 'TT', color: '#000000', label: 'TikTok' },
+  instagram: { icon: 'IG', color: '#E4405F', label: 'Instagram' },
   facebook: { icon: 'FB', color: '#1877F2', label: 'Facebook' },
   twitter: { icon: 'X', color: '#000000', label: 'X' },
   kawai: { icon: 'KW', color: '#FF69B4', label: 'Kawai' },
 };
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-  pending: { label: 'Pendente', bg: '#fef3c7', text: '#92400e', icon: '⏳' },
-  scheduled: { label: 'Agendado', bg: '#dbeafe', text: '#1e40af', icon: '📅' },
-  published: { label: 'Publicado', bg: '#d1fae5', text: '#065f46', icon: '✅' },
-  draft: { label: 'Rascunho', bg: '#f3f4f6', text: '#374151', icon: '📝' },
+  pending: { label: 'Pendente', bg: '#fef3c7', text: '#92400e', icon: 'PND' },
+  scheduled: { label: 'Agendado', bg: '#dbeafe', text: '#1e40af', icon: 'SCH' },
+  published: { label: 'Publicado', bg: '#d1fae5', text: '#065f46', icon: 'PUB' },
+  draft: { label: 'Rascunho', bg: '#f3f4f6', text: '#374151', icon: 'DRF' },
 };
 
 export function PostCard({ post, onEdit, onDelete }: PostCardProps) {
   // Get platforms - support both new (platforms array) and old (platform string) format
-  const platformsArray: string[] = post.platforms || (post.platform ? [post.platform] : []);
+  const platformsArrayRaw: string[] = post.platforms || (post.platform ? [post.platform] : []);
+  const platformsArray = Array.from(
+    new Set(
+      platformsArrayRaw
+        .filter(Boolean)
+        .map((platform) => (platform === 'x' ? 'twitter' : platform.toLowerCase())),
+    ),
+  );
   const status = statusConfig[post.status] || statusConfig.draft;
   const workspaceName = post.workspaceName || post.workspace?.name || 'Sem workspace';
   const primaryPlatform = platformsArray[0] ? platformData[platformsArray[0]] : platformData.youtube;
