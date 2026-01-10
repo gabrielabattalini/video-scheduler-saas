@@ -44,20 +44,19 @@ export function LanguageSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          padding: '0.5rem 2.5rem 0.5rem 0.75rem',
+          padding: '0.4rem 0.6rem',
           background: 'white',
           color: '#1e293b',
           border: '1px solid rgba(0, 0, 0, 0.1)',
           borderRadius: '8px',
           cursor: 'pointer',
-          fontSize: '1.5rem',
+          fontSize: '1rem',
           fontWeight: '500',
           transition: 'all 0.2s ease',
-          minWidth: '60px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '0.5rem',
+          gap: '0.35rem',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
@@ -70,13 +69,13 @@ export function LanguageSelector() {
       >
         <span
           style={{
-            fontSize: '1rem',
+            fontSize: '0.9rem',
             lineHeight: '1',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
-            height: '24px',
+            width: '28px',
+            height: '22px',
             borderRadius: '4px',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
