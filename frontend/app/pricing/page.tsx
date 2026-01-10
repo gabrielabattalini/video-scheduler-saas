@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Check } from 'lucide-react';
@@ -33,10 +33,10 @@ type Plan = {
 
 const baseNavCopy: NavCopy = { home: 'Home', pricing: 'Pricing', login: 'Sign in', start: 'Start free' };
 const navCopy: Record<Language, NavCopy> = {
-  pt: { home: 'Início', pricing: 'Preços', login: 'Entrar', start: 'Começar grátis' },
+  pt: { home: 'InÃ­cio', pricing: 'PreÃ§os', login: 'Entrar', start: 'ComeÃ§ar grÃ¡tis' },
   en: baseNavCopy,
-  ru: { home: 'Главная', pricing: 'Цены', login: 'Войти', start: 'Начать бесплатно' },
-  zh: { home: '首页', pricing: '定价', login: '登录', start: '免费开始' },
+  ru: { home: 'Ð“Ð»Ð°Ð²Ð½Ð°Ñ', pricing: 'Ð¦ÐµÐ½Ñ‹', login: 'Ð’Ð¾Ð¹Ñ‚Ð¸', start: 'ÐÐ°Ñ‡Ð°Ñ‚ÑŒ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾' },
+  zh: { home: 'é¦–é¡µ', pricing: 'å®šä»·', login: 'ç™»å½•', start: 'å…è´¹å¼€å§‹' },
 };
 
 const basePageCopy: PageCopy = {
@@ -68,81 +68,81 @@ const basePageCopy: PageCopy = {
 
 const pageCopy: Record<Language, PageCopy> = {
   pt: {
-    heroTitle: 'Planos e Preços',
+    heroTitle: 'Planos e PreÃ§os',
     heroSubtitle: 'Escolha o plano perfeito para suas necessidades',
     faqTitle: 'Perguntas Frequentes',
-    ctaTitle: 'Pronto para começar?',
-    ctaSubtitle: 'Junte-se a milhares de criadores que já estão usando Autoedito',
-    ctaButton: 'Criar conta grátis',
+    ctaTitle: 'Pronto para comeÃ§ar?',
+    ctaSubtitle: 'Junte-se a milhares de criadores que jÃ¡ estÃ£o usando Autoedito',
+    ctaButton: 'Criar conta grÃ¡tis',
     faq: [
       {
         q: 'Posso mudar de plano a qualquer momento?',
-        a: 'Sim! Você pode fazer upgrade ou downgrade do seu plano quando quiser. As alterações valem no próximo ciclo de cobrança.',
+        a: 'Sim! VocÃª pode fazer upgrade ou downgrade do seu plano quando quiser. As alteraÃ§Ãµes valem no prÃ³ximo ciclo de cobranÃ§a.',
       },
       {
         q: 'O que acontece se eu exceder o limite do plano?',
-        a: 'Você receberá uma notificação e poderá fazer upgrade para continuar usando o serviço sem interrupções.',
+        a: 'VocÃª receberÃ¡ uma notificaÃ§Ã£o e poderÃ¡ fazer upgrade para continuar usando o serviÃ§o sem interrupÃ§Ãµes.',
       },
       {
-        q: 'Há período de teste?',
-        a: 'Sim! Todos os planos incluem um período de teste gratuito de 14 dias. Não é necessário cartão de crédito.',
+        q: 'HÃ¡ perÃ­odo de teste?',
+        a: 'Sim! Todos os planos incluem um perÃ­odo de teste gratuito de 14 dias. NÃ£o Ã© necessÃ¡rio cartÃ£o de crÃ©dito.',
       },
       {
-        q: 'Quais métodos de pagamento são aceitos?',
-        a: 'Aceitamos cartão de crédito, débito e PIX. Todos os pagamentos são processados de forma segura.',
+        q: 'Quais mÃ©todos de pagamento sÃ£o aceitos?',
+        a: 'Aceitamos cartÃ£o de crÃ©dito, dÃ©bito e PIX. Todos os pagamentos sÃ£o processados de forma segura.',
       },
     ],
   },
   en: basePageCopy,
   ru: {
-    heroTitle: 'Планы и цены',
-    heroSubtitle: 'Выберите подходящий план для ваших задач',
-    faqTitle: 'Частые вопросы',
-    ctaTitle: 'Готовы начать?',
-    ctaSubtitle: 'Присоединяйтесь к тысячам авторов, которые уже используют Autoedito',
-    ctaButton: 'Создать аккаунт бесплатно',
+    heroTitle: 'ÐŸÐ»Ð°Ð½Ñ‹ Ð¸ Ñ†ÐµÐ½Ñ‹',
+    heroSubtitle: 'Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ð¿Ð¾Ð´Ñ…Ð¾Ð´ÑÑ‰Ð¸Ð¹ Ð¿Ð»Ð°Ð½ Ð´Ð»Ñ Ð²Ð°ÑˆÐ¸Ñ… Ð·Ð°Ð´Ð°Ñ‡',
+    faqTitle: 'Ð§Ð°ÑÑ‚Ñ‹Ðµ Ð²Ð¾Ð¿Ñ€Ð¾ÑÑ‹',
+    ctaTitle: 'Ð“Ð¾Ñ‚Ð¾Ð²Ñ‹ Ð½Ð°Ñ‡Ð°Ñ‚ÑŒ?',
+    ctaSubtitle: 'ÐŸÑ€Ð¸ÑÐ¾ÐµÐ´Ð¸Ð½ÑÐ¹Ñ‚ÐµÑÑŒ Ðº Ñ‚Ñ‹ÑÑÑ‡Ð°Ð¼ Ð°Ð²Ñ‚Ð¾Ñ€Ð¾Ð², ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ ÑƒÐ¶Ðµ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÑŽÑ‚ Autoedito',
+    ctaButton: 'Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾',
     faq: [
       {
-        q: 'Могу ли я менять план в любое время?',
-        a: 'Да! Можно повысить или понизить план когда угодно. Изменения вступают в силу в следующем биллинге.',
+        q: 'ÐœÐ¾Ð³Ñƒ Ð»Ð¸ Ñ Ð¼ÐµÐ½ÑÑ‚ÑŒ Ð¿Ð»Ð°Ð½ Ð² Ð»ÑŽÐ±Ð¾Ðµ Ð²Ñ€ÐµÐ¼Ñ?',
+        a: 'Ð”Ð°! ÐœÐ¾Ð¶Ð½Ð¾ Ð¿Ð¾Ð²Ñ‹ÑÐ¸Ñ‚ÑŒ Ð¸Ð»Ð¸ Ð¿Ð¾Ð½Ð¸Ð·Ð¸Ñ‚ÑŒ Ð¿Ð»Ð°Ð½ ÐºÐ¾Ð³Ð´Ð° ÑƒÐ³Ð¾Ð´Ð½Ð¾. Ð˜Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ Ð²ÑÑ‚ÑƒÐ¿Ð°ÑŽÑ‚ Ð² ÑÐ¸Ð»Ñƒ Ð² ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¼ Ð±Ð¸Ð»Ð»Ð¸Ð½Ð³Ðµ.',
       },
       {
-        q: 'Что если я превышу лимит плана?',
-        a: 'Мы уведомим вас, и вы сможете перейти на более высокий план, чтобы продолжить без перерывов.',
+        q: 'Ð§Ñ‚Ð¾ ÐµÑÐ»Ð¸ Ñ Ð¿Ñ€ÐµÐ²Ñ‹ÑˆÑƒ Ð»Ð¸Ð¼Ð¸Ñ‚ Ð¿Ð»Ð°Ð½Ð°?',
+        a: 'ÐœÑ‹ ÑƒÐ²ÐµÐ´Ð¾Ð¼Ð¸Ð¼ Ð²Ð°Ñ, Ð¸ Ð²Ñ‹ ÑÐ¼Ð¾Ð¶ÐµÑ‚Ðµ Ð¿ÐµÑ€ÐµÐ¹Ñ‚Ð¸ Ð½Ð° Ð±Ð¾Ð»ÐµÐµ Ð²Ñ‹ÑÐ¾ÐºÐ¸Ð¹ Ð¿Ð»Ð°Ð½, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ñ€Ð¾Ð´Ð¾Ð»Ð¶Ð¸Ñ‚ÑŒ Ð±ÐµÐ· Ð¿ÐµÑ€ÐµÑ€Ñ‹Ð²Ð¾Ð².',
       },
       {
-        q: 'Есть ли пробный период?',
-        a: 'Да! Все планы включают 14 дней бесплатного теста. Банковская карта не требуется.',
+        q: 'Ð•ÑÑ‚ÑŒ Ð»Ð¸ Ð¿Ñ€Ð¾Ð±Ð½Ñ‹Ð¹ Ð¿ÐµÑ€Ð¸Ð¾Ð´?',
+        a: 'Ð”Ð°! Ð’ÑÐµ Ð¿Ð»Ð°Ð½Ñ‹ Ð²ÐºÐ»ÑŽÑ‡Ð°ÑŽÑ‚ 14 Ð´Ð½ÐµÐ¹ Ð±ÐµÑÐ¿Ð»Ð°Ñ‚Ð½Ð¾Ð³Ð¾ Ñ‚ÐµÑÑ‚Ð°. Ð‘Ð°Ð½ÐºÐ¾Ð²ÑÐºÐ°Ñ ÐºÐ°Ñ€Ñ‚Ð° Ð½Ðµ Ñ‚Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ.',
       },
       {
-        q: 'Какие способы оплаты доступны?',
-        a: 'Принимаем кредитные/дебетовые карты и PIX. Все платежи обрабатываются безопасно.',
+        q: 'ÐšÐ°ÐºÐ¸Ðµ ÑÐ¿Ð¾ÑÐ¾Ð±Ñ‹ Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ñ‹?',
+        a: 'ÐŸÑ€Ð¸Ð½Ð¸Ð¼Ð°ÐµÐ¼ ÐºÑ€ÐµÐ´Ð¸Ñ‚Ð½Ñ‹Ðµ/Ð´ÐµÐ±ÐµÑ‚Ð¾Ð²Ñ‹Ðµ ÐºÐ°Ñ€Ñ‚Ñ‹ Ð¸ PIX. Ð’ÑÐµ Ð¿Ð»Ð°Ñ‚ÐµÐ¶Ð¸ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÑŽÑ‚ÑÑ Ð±ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾.',
       },
     ],
   },
   zh: {
-    heroTitle: '方案与定价',
-    heroSubtitle: '选择最适合你的方案',
-    faqTitle: '常见问题',
-    ctaTitle: '准备开始了吗？',
-    ctaSubtitle: '加入已经在使用 Autoedito 的数千创作者',
-    ctaButton: '免费创建账号',
+    heroTitle: 'æ–¹æ¡ˆä¸Žå®šä»·',
+    heroSubtitle: 'é€‰æ‹©æœ€é€‚åˆä½ çš„æ–¹æ¡ˆ',
+    faqTitle: 'å¸¸è§é—®é¢˜',
+    ctaTitle: 'å‡†å¤‡å¼€å§‹äº†å—ï¼Ÿ',
+    ctaSubtitle: 'åŠ å…¥å·²ç»åœ¨ä½¿ç”¨ Autoedito çš„æ•°åƒåˆ›ä½œè€…',
+    ctaButton: 'å…è´¹åˆ›å»ºè´¦å·',
     faq: [
       {
-        q: '我可以随时更换方案吗？',
-        a: '可以！随时升级或降级，变更会在下一个账单周期生效。',
+        q: 'æˆ‘å¯ä»¥éšæ—¶æ›´æ¢æ–¹æ¡ˆå—ï¼Ÿ',
+        a: 'å¯ä»¥ï¼éšæ—¶å‡çº§æˆ–é™çº§ï¼Œå˜æ›´ä¼šåœ¨ä¸‹ä¸€ä¸ªè´¦å•å‘¨æœŸç”Ÿæ•ˆã€‚',
       },
       {
-        q: '如果超过方案限制会怎样？',
-        a: '我们会通知你，你可以升级方案以不中断地继续使用。',
+        q: 'å¦‚æžœè¶…è¿‡æ–¹æ¡ˆé™åˆ¶ä¼šæ€Žæ ·ï¼Ÿ',
+        a: 'æˆ‘ä»¬ä¼šé€šçŸ¥ä½ ï¼Œä½ å¯ä»¥å‡çº§æ–¹æ¡ˆä»¥ä¸ä¸­æ–­åœ°ç»§ç»­ä½¿ç”¨ã€‚',
       },
       {
-        q: '有没有试用期？',
-        a: '有！所有方案都包含 14 天免费试用，无需信用卡。',
+        q: 'æœ‰æ²¡æœ‰è¯•ç”¨æœŸï¼Ÿ',
+        a: 'æœ‰ï¼æ‰€æœ‰æ–¹æ¡ˆéƒ½åŒ…å« 14 å¤©å…è´¹è¯•ç”¨ï¼Œæ— éœ€ä¿¡ç”¨å¡ã€‚',
       },
       {
-        q: '支持哪些支付方式？',
-        a: '支持信用卡、借记卡和 PIX，所有支付都会安全处理。',
+        q: 'æ”¯æŒå“ªäº›æ”¯ä»˜æ–¹å¼ï¼Ÿ',
+        a: 'æ”¯æŒä¿¡ç”¨å¡ã€å€Ÿè®°å¡å’Œ PIXï¼Œæ‰€æœ‰æ”¯ä»˜éƒ½ä¼šå®‰å…¨å¤„ç†ã€‚',
       },
     ],
   },
@@ -158,7 +158,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: 'R$ 0',
       period: '/mês',
       description: 'Perfeito para começar',
-      features: ['Até 10 posts por mês', '1 plataforma conectada', 'Agendamento básico', 'Suporte por email'],
+      features: ['Até 4 posts por mês', '1 plataforma conectada', 'Agendamento básico', 'Suporte por email'],
       cta: 'Começar grátis',
       popular: false,
     },
@@ -167,14 +167,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: 'R$ 49',
       period: '/mês',
       description: 'Para criadores de conteúdo',
-      features: [
-        'Posts ilimitados',
-        'Todas as plataformas',
-        'Agendamento avançado',
-        'Análises e métricas',
-        'Suporte prioritário',
-        'Editor de vídeo',
-      ],
+      features: ['Até 30 posts por mês', 'Até 5 plataformas conectadas', '3 workspaces', 'Agendamento', 'Suporte prioritário'],
       cta: 'Assinar agora',
       popular: true,
     },
@@ -183,14 +176,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: 'R$ 149',
       period: '/mês',
       description: 'Para equipes e agências',
-      features: [
-        'Tudo do Profissional',
-        'Múltiplos usuários',
-        'Workspaces ilimitados',
-        'API personalizada',
-        'Suporte dedicado',
-        'Treinamento da equipe',
-      ],
+      features: ['Até 90 posts por mês', 'Múltiplos usuários', 'Workspaces ilimitados', 'Suporte dedicado', 'Treinamento da equipe'],
       cta: 'Falar com vendas',
       popular: false,
     },
@@ -201,7 +187,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '$0',
       period: '/mo',
       description: 'Perfect to get started',
-      features: ['Up to 10 posts per month', '1 connected platform', 'Basic scheduling', 'Email support'],
+      features: ['Up to 4 posts per month', '1 connected platform', 'Basic scheduling', 'Email support'],
       cta: 'Start for free',
       popular: false,
     },
@@ -210,14 +196,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '$49',
       period: '/mo',
       description: 'For content creators',
-      features: [
-        'Unlimited posts',
-        'All platforms',
-        'Advanced scheduling',
-        'Analytics and metrics',
-        'Priority support',
-        'Video editor',
-      ],
+      features: ['Up to 30 posts per month', 'Up to 5 connected platforms', '3 workspaces', 'Scheduling', 'Priority support'],
       cta: 'Subscribe now',
       popular: true,
     },
@@ -226,14 +205,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '$149',
       period: '/mo',
       description: 'For teams and agencies',
-      features: [
-        'Everything in Pro',
-        'Multiple users',
-        'Unlimited workspaces',
-        'Custom API',
-        'Dedicated support',
-        'Team training',
-      ],
+      features: ['Up to 90 posts per month', 'Multiple users', 'Unlimited workspaces', 'Dedicated support', 'Team training'],
       cta: 'Talk to sales',
       popular: false,
     },
@@ -243,25 +215,18 @@ const plansByLang: Record<Language, Plan[]> = {
       name: 'Бесплатный',
       price: '0 ₽',
       period: '/мес',
-      description: 'Идеально для старта',
-      features: ['До 10 постов в месяц', '1 подключенная платформа', 'Базовое планирование', 'Поддержка по email'],
+      description: 'Отлично для старта',
+      features: ['До 4 постов в месяц', '1 подключенная платформа', 'Базовое планирование', 'Поддержка по email'],
       cta: 'Начать бесплатно',
       popular: false,
     },
     {
-      name: 'Профессионал',
+      name: 'Профессиональный',
       price: '49 ₽',
       period: '/мес',
-      description: 'Для авторов контента',
-      features: [
-        'Неограниченные посты',
-        'Все платформы',
-        'Расширенное планирование',
-        'Аналитика и метрики',
-        'Приоритетная поддержка',
-        'Видео-редактор',
-      ],
-      cta: 'Подписаться',
+      description: 'Для создателей контента',
+      features: ['До 30 постов в месяц', 'До 5 подключенных платформ', '3 рабочих пространства', 'Планирование', 'Приоритетная поддержка'],
+      cta: 'Оформить подписку',
       popular: true,
     },
     {
@@ -269,25 +234,18 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '149 ₽',
       period: '/мес',
       description: 'Для команд и агентств',
-      features: [
-        'Все из Профессионала',
-        'Несколько пользователей',
-        'Безлимитные workspaces',
-        'Пользовательское API',
-        'Выделенная поддержка',
-        'Обучение команды',
-      ],
-      cta: 'Связаться с продажами',
+      features: ['До 90 постов в месяц', 'Несколько пользователей', 'Безлимитные рабочие пространства', 'Выделенная поддержка', 'Обучение команды'],
+      cta: 'Связаться с отделом продаж',
       popular: false,
     },
   ],
   zh: [
     {
-      name: '免费版',
+      name: '免费',
       price: '¥0',
       period: '/月',
       description: '适合入门',
-      features: ['每月最多 10 个帖子', '1 个已连接平台', '基础排程', '邮箱支持'],
+      features: ['每月最多 4 条帖子', '1 个已连接的平台', '基础排程', '邮件支持'],
       cta: '免费开始',
       popular: false,
     },
@@ -296,7 +254,7 @@ const plansByLang: Record<Language, Plan[]> = {
       price: '¥49',
       period: '/月',
       description: '适合内容创作者',
-      features: ['帖子不限量', '全部平台', '高级排程', '分析与指标', '优先支持', '视频编辑器'],
+      features: ['每月最多 30 条帖子', '最多 5 个已连接的平台', '3 个工作区', '排程', '优先支持'],
       cta: '立即订阅',
       popular: true,
     },
@@ -304,21 +262,13 @@ const plansByLang: Record<Language, Plan[]> = {
       name: '企业版',
       price: '¥149',
       period: '/月',
-      description: '适合团队与代理',
-      features: [
-        '包含专业版全部内容',
-        '多用户支持',
-        '无限工作区',
-        '自定义 API',
-        '专属支持',
-        '团队培训',
-      ],
+      description: '适合团队和机构',
+      features: ['每月最多 90 条帖子', '多用户', '无限工作区', '专属支持', '团队培训'],
       cta: '联系销售',
       popular: false,
     },
   ],
 };
-
 const getPlans = (language: Language) => plansByLang[language] || plansByLang.en;
 
 export default function PricingPage() {
@@ -454,3 +404,5 @@ export default function PricingPage() {
     </div>
   );
 }
+
+
