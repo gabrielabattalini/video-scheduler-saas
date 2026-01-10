@@ -6,12 +6,16 @@ import { usePosts, type Platform } from '@/lib/posts-context';
 import { authService } from '@/lib/auth';
 import { postsApi } from '@/lib/posts-api';
 import { Navbar } from '@/components/Navbar';
+import { PlatformIcon, platformMeta, type PlatformKey } from '@/components/PlatformIcon';
 import { generateTimeSlots, combineDateAndTime, splitDateTime, isFutureDateTime, getMinDateTime } from '@/lib/date-utils';
 
-const platforms: { value: Platform; label: string; icon: string; color: string }[] = [
-  { value: 'youtube', label: 'YouTube', icon: '📺', color: '#FF0000' },
-  { value: 'tiktok', label: 'TikTok', icon: '🎵', color: '#000000' },
-  { value: 'instagram', label: 'Instagram', icon: '📸', color: '#E4405F' },
+const platforms: { value: Platform; label: string; color: string }[] = [
+  { value: 'youtube', label: platformMeta.youtube.label, color: platformMeta.youtube.color },
+  { value: 'tiktok', label: platformMeta.tiktok.label, color: platformMeta.tiktok.color },
+  { value: 'instagram', label: platformMeta.instagram.label, color: platformMeta.instagram.color },
+  { value: 'facebook', label: platformMeta.facebook.label, color: platformMeta.facebook.color },
+  { value: 'twitter', label: platformMeta.twitter.label, color: platformMeta.twitter.color },
+  { value: 'kawai', label: platformMeta.kawai.label, color: platformMeta.kawai.color },
 ];
 
 export default function EditPost() {
@@ -464,7 +468,20 @@ export default function EditPost() {
                         }
                       }}
                     >
-                      <span style={{ fontSize: '2.5rem' }}>{p.icon}</span>
+                      <div
+                        style={{
+                          width: '52px',
+                          height: '52px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '14px',
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                        }}
+                      >
+                        <PlatformIcon platform={p.value as PlatformKey} size={30} />
+                      </div>
                       <span style={{ fontSize: '0.95rem' }}>{p.label}</span>
                       {isSelected && (
                         <div
@@ -816,3 +833,4 @@ export default function EditPost() {
     </div>
   );
 }
+
