@@ -34,6 +34,7 @@ export function Navbar() {
   const [workspaceModalSelection, setWorkspaceModalSelection] = useState<string | null>(null);
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [confirmData, setConfirmData] = useState<{ message: string; targetId: string | null } | null>(null);
 
   useEffect(() => {
@@ -417,65 +418,138 @@ export function Navbar() {
 
           {/* User Greeting */}
           <div
-            onClick={() => router.push('/account')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '12px',
-              background: 'rgba(102, 126, 234, 0.05)',
-              border: '1px solid rgba(102, 126, 234, 0.1)',
-              cursor: 'pointer',
-              transition: 'transform 0.15s ease, box-shadow 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 6px 12px rgba(102,126,234,0.18)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-            title={t.account?.title || 'Account'}
+            style={{ position: 'relative' }}
+            onMouseLeave={() => setShowUserMenu(false)}
           >
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: '600',
-              fontSize: '0.9375rem',
-              flexShrink: 0,
-          }}>
-            {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <span style={{ 
-                fontSize: '0.8125rem', 
-                color: '#64748b',
-                lineHeight: '1.2',
-              }}>
-                {t.navbar.hello}
-              </span>
-              <span style={{ 
-                fontSize: '0.875rem', 
+            <div
+              onClick={() => setShowUserMenu((prev) => !prev)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '12px',
+                background: 'rgba(102, 126, 234, 0.05)',
+                border: '1px solid rgba(102, 126, 234, 0.1)',
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease, box-shadow 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(102,126,234,0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              title={t.account?.title || 'Account'}
+            >
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
                 fontWeight: '600',
-                color: '#1e293b',
-                lineHeight: '1.2',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                fontSize: '0.9375rem',
+                flexShrink: 0,
               }}>
-                {user?.name || user?.email || 'Usuário'}
-              </span>
+                {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{
+                    fontSize: '0.8125rem',
+                    color: '#64748b',
+                    lineHeight: '1.2',
+                  }}>
+                    {t.navbar.hello}
+                  </span>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#1e293b',
+                    lineHeight: '1.2',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {user?.name || user?.email || 'Usuario'}
+                  </span>
+                </div>
             </div>
+            {showUserMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 30px rgba(15,23,42,0.12)',
+                  minWidth: '220px',
+                  padding: '0.5rem',
+                  zIndex: 1200,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    router.push('/account');
+                  }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'white',
+                    color: '#0f172a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21a8 8 0 1 0-16 0" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span>{t.account?.profile || 'Profile'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    router.push('/payments');
+                  }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'white',
+                    color: '#0f172a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <path d="M2 10h20" />
+                  </svg>
+                  <span>{t.payments?.title || 'Payments'}</span>
+                </button>
+              </div>
+            )}
           </div>
-
           {/* Language Selector */}
           <LanguageSelector />
 
@@ -753,4 +827,5 @@ export function Navbar() {
     </>
   );
 }
+
 
